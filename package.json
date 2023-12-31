@@ -11,8 +11,8 @@
     "url": "git+https://github.com/jeasx/jeasx.git"
   },
   "author": {
-    "name": "Maik Jablonski",
-    "email": "mail@mjablonski.de"
+    "name": "Maik Jablonski (Neoskop GmbH)",
+    "email": "jablonski@neoskop.de"
   },
   "type": "module",
   "main": "server.js",
