@@ -16,6 +16,9 @@
   },
   "type": "module",
   "main": "server.js",
+  "bin": {
+    "jeasx": "./cli.js"
+  },
   "dependencies": {
     "@fastify/accepts": "4.3.0",
     "@fastify/cookie": "9.2.0",
