@@ -1,6 +1,6 @@
 {
   "name": "jeasx",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Jeasx - server side rendering with the ease of JSX",
   "keywords": [
     "jsx",
