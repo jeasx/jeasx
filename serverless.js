@@ -54,7 +54,7 @@ serverless.all("*", async (request, reply) => {
     const modulePath = join(process.cwd(), "dist", pathname);
     try {
       (await stat(modulePath)).isFile();
-    } catch (error) {
+    } catch {
       continue;
     }
     const hash = process.env.NODE_ENV === "development" ? "?" + createHash("sha1").update(await readFile(modulePath, "utf-8")).digest("hex") : "";

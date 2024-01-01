@@ -77,7 +77,7 @@ serverless.all("*", async (request, reply) => {
 
     try {
       (await stat(modulePath)).isFile();
-    } catch (error) {
+    } catch {
       continue;
     }
 
