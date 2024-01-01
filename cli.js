@@ -14,12 +14,12 @@ switch (process.argv[2]) {
     await dev();
     break;
 
-  case "clear":
-    await clear();
+  case "clean":
+    await clean();
     break;
 
   case "help":
-    console.info(`Usage: jeasx [start|build|dev|clear|help]`);
+    console.info(`Usage: jeasx [start|build|dev|clean|help]`);
     break;
 
   default:
@@ -35,7 +35,7 @@ async function start() {
 
 async function build() {
   process.argv = process.argv.splice(0, 2);
-  await clear();
+  await clean();
   await import("./esbuild.config.js");
 }
 
@@ -43,12 +43,12 @@ async function dev() {
   process.env.NODE_ENV = "development";
   process.argv[2] = "start";
   process.argv[3] ??= "node_modules/jeasx/ecosystem.config.cjs";
-  await clear();
+  await clean();
   // @ts-ignore
   await import("pm2/bin/pm2-runtime");
 }
 
-async function clear() {
+async function clean() {
   await fs.rm("dist", { recursive: true, force: true });
 }
 
