@@ -34,9 +34,7 @@ async function start() {
 }
 
 async function build() {
-  process.argv[2] = "routes";
-  process.argv[3] = "js";
-  process.argv[4] = "css";
+  process.argv = process.argv.splice(0, 2);
   await clear();
   await import("./esbuild.config.js");
 }
