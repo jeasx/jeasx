@@ -35,6 +35,6 @@
     "pm2": "5.3.0"
   },
   "scripts": {
-    "build": "esbuild --platform=node --format=esm --outfile=serverless.js serverless.ts"
+    "build": "esbuild --platform=node --format=esm --outdir=. serverless.ts"
   }
 }
