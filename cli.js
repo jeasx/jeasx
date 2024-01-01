@@ -46,7 +46,7 @@ async function dev() {
   process.argv[2] = "start";
   process.argv[3] ??= "node_modules/jeasx/ecosystem.config.cjs";
   await clear();
-  await import("pm2/lib/binaries/Runtime4Docker.js");
+  await import("pm2/bin/pm2-runtime");
 }
 
 async function clear() {
