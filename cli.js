@@ -46,6 +46,7 @@ async function dev() {
   process.argv[2] = "start";
   process.argv[3] ??= "node_modules/jeasx/ecosystem.config.cjs";
   await clear();
+  // @ts-ignore
   await import("pm2/bin/pm2-runtime");
 }
 
