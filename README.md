@@ -1,4 +1,4 @@
-# Jeasx - server side rendering with the ease of JSX
+# jeasx - server side rendering with the ease of JSX
 
 This is the `jeasx` core repository.
 

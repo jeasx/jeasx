@@ -1,10 +1,11 @@
 {
   "name": "jeasx",
   "version": "0.0.4",
-  "description": "Jeasx - server side rendering with the ease of JSX",
+  "description": "jeasx - the power of server side rendering with the ease of jsx",
   "keywords": [
     "jsx",
-    "ssr"
+    "ssr",
+    "node"
   ],
   "license": "MIT",
   "repository": {
