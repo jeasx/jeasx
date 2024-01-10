@@ -1,11 +1,12 @@
 {
   "name": "jeasx",
   "version": "0.0.7",
-  "description": "jeasx - the power of server side rendering with the ease of jsx",
+  "description": "jeasx - the ease of JSX with the power of SSR",
   "keywords": [
     "jsx",
     "ssr",
-    "node"
+    "node",
+    "ease"
   ],
   "license": "MIT",
   "repository": {
@@ -13,7 +14,7 @@
   },
   "author": {
     "name": "Maik Jablonski (Neoskop GmbH)",
-    "email": "jablonski@neoskop.de"
+    "email": "jeasx@neoskop.de"
   },
   "type": "module",
   "main": "server.js",
@@ -28,7 +29,7 @@
     "@fastify/request-context": "5.1.0",
     "@fastify/static": "6.12.0",
     "@fastify/url-data": "5.4.0",
-    "@types/node": "20.10.7",
+    "@types/node": "20.10.8",
     "dotenv": "16.3.1",
     "esbuild": "0.19.11",
     "fastify": "4.25.2",
