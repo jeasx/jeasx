@@ -95,6 +95,7 @@ function buildBrowser(...entryPoints) {
       "*.png",
       "*.svg",
       "*.webp",
+      "*.eot",
       "*.ttf",
       "*.otf",
       "*.woff",
