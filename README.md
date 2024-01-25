@@ -2,4 +2,4 @@
 
 This is the `jeasx` core repository.
 
-Please visit <https://github.com/jeasx/quickstart> to get started.
+Please visit <https://www.jeasx.dev> to learn more.
