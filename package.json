@@ -20,7 +20,7 @@
   "type": "module",
   "main": "server.js",
   "bin": {
-    "jeasx": "./cli.js"
+    "jeasx": "cli.js"
   },
   "dependencies": {
     "@fastify/accepts": "4.3.0",
