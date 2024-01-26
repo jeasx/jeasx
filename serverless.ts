@@ -26,10 +26,31 @@ serverless.register(fastifyFormbody);
 serverless.register(fastifyMultipart);
 serverless.register(fastifyRequestContext);
 serverless.register(fastifyUrlData);
+
+// Setup static file plugin
+const FASTIFY_STATIC_HEADERS =
+  process.env.NODE_ENV !== "development" && process.env.FASTIFY_STATIC_HEADERS
+    ? JSON.parse(String(process.env.FASTIFY_STATIC_HEADERS))
+    : undefined;
+
 serverless.register(fastifyStatic, {
   root: ["public", "dist/browser"].map((dir) => join(process.cwd(), dir)),
   prefix: "/",
   wildcard: false,
+  setHeaders: FASTIFY_STATIC_HEADERS
+    ? (reply, path) => {
+        for (const [suffix, headers] of Object.entries(
+          FASTIFY_STATIC_HEADERS
+        )) {
+          if (path.endsWith(suffix)) {
+            for (const [key, value] of Object.entries(headers)) {
+              reply.setHeader(key, value);
+            }
+            return;
+          }
+        }
+      }
+    : undefined,
 });
 
 // Handle all requests
