@@ -12,10 +12,12 @@ import { createHash } from "node:crypto";
 import { readFile, stat } from "node:fs/promises";
 import { join } from "node:path";
 
+const NODE_ENV_IS_DEVELOPMENT = process.env.NODE_ENV === "development";
+
 // Create a Fastify app instance
 const serverless = Fastify({
   logger: true,
-  disableRequestLogging: process.env.NODE_ENV === "development",
+  disableRequestLogging: NODE_ENV_IS_DEVELOPMENT,
   bodyLimit: Number(process.env.FASTIFY_BODY_LIMIT) || undefined,
 });
 
@@ -29,7 +31,7 @@ serverless.register(fastifyUrlData);
 
 // Setup static file plugin
 const FASTIFY_STATIC_HEADERS =
-  process.env.NODE_ENV !== "development" && process.env.FASTIFY_STATIC_HEADERS
+  !NODE_ENV_IS_DEVELOPMENT && process.env.FASTIFY_STATIC_HEADERS
     ? JSON.parse(String(process.env.FASTIFY_STATIC_HEADERS))
     : undefined;
 
@@ -103,13 +105,12 @@ serverless.all("*", async (request, reply) => {
     }
 
     // Build content hash in development, so we can refresh code via "query string hack".
-    const hash =
-      process.env.NODE_ENV === "development"
-        ? "?" +
-          createHash("sha1")
-            .update(await readFile(modulePath, "utf-8"))
-            .digest("hex")
-        : "";
+    const hash = NODE_ENV_IS_DEVELOPMENT
+      ? "?" +
+        createHash("sha1")
+          .update(await readFile(modulePath, "utf-8"))
+          .digest("hex")
+      : "";
 
     // Call the handler with request, reply and optional props
     response = await (
