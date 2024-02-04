@@ -1,3 +1,4 @@
+import "dotenv/config";
 import * as esbuild from "esbuild";
 
 const BUILD_TIME =
@@ -14,6 +15,10 @@ const BROWSER_PUBLIC_ENV = Object.keys(process.env)
     },
     { "process.env.BROWSER_PUBLIC_BUILD_TIME": BUILD_TIME }
   );
+
+const ESBUILD_BROWSER_TARGET = process.env.ESBUILD_BROWSER_TARGET
+  ? process.env.ESBUILD_BROWSER_TARGET.split(/\s*,\s*/)
+  : ["chrome109", "edge112", "firefox102", "safari16"];
 
 const args = process.argv.slice(2);
 
@@ -86,7 +91,7 @@ function buildBrowser(...entryPoints) {
     outdir: "dist/browser",
     platform: "browser",
     format: "esm",
-    target: ["chrome109", "edge112", "firefox102", "safari16"],
+    target: ESBUILD_BROWSER_TARGET,
     external: [
       "*.avif",
       "*.gif",
