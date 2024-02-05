@@ -5,6 +5,7 @@ module.exports = {
     {
       name: "jeasx:start:server",
       script: "node_modules/jeasx/server.js",
+      watch: ["public"],
       autorestart: true,
     },
     {
