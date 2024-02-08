@@ -17,7 +17,7 @@ const BROWSER_PUBLIC_ENV = Object.keys(process.env)
   );
 
 const ESBUILD_BROWSER_TARGET = process.env.ESBUILD_BROWSER_TARGET
-  ? process.env.ESBUILD_BROWSER_TARGET.split(/\s*,\s*/)
+  ? process.env.ESBUILD_BROWSER_TARGET.trim().split(/\s*,\s*/)
   : ["chrome109", "edge112", "firefox102", "safari16"];
 
 const args = process.argv.slice(2);
