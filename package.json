@@ -31,9 +31,9 @@
     "@fastify/static": "7.0.1",
     "@fastify/url-data": "5.4.0",
     "@types/node": "20.11.17",
-    "dotenv": "16.4.2",
+    "dotenv": "16.4.3",
     "esbuild": "0.20.0",
-    "fastify": "4.26.0",
+    "fastify": "4.26.1",
     "jsx-async-runtime": "0.1.3",
     "pm2": "5.3.1"
   },
