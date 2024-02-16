@@ -114,7 +114,7 @@ serverless.all("*", async (request, reply) => {
 
     // Call the handler with request, reply and optional props
     response = await (
-      await import(`${modulePath}${hash}`)
+      await import(`file://${modulePath}${hash}`)
     ).default({
       request,
       reply,
