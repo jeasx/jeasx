@@ -41,15 +41,18 @@ async function build() {
 
 async function dev() {
   process.env.NODE_ENV = "development";
+  // Run build to prepare browser assets for fastify-static
+  process.argv = ["jeasx", "build"];
+  await build();
+  // Start the dev environment
   process.argv[2] = "start";
   process.argv[3] ??= "node_modules/jeasx/ecosystem.config.cjs";
-  await clean();
   // @ts-ignore
   await import("pm2/bin/pm2-runtime");
 }
 
 async function clean() {
-  await fs.rm("dist", { recursive: true, force: true });
+  await fs.rm("dist", { recursive: true, force: true, maxRetries: 3 });
 }
 
 export {};
