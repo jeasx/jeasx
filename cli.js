@@ -34,15 +34,16 @@ async function start() {
 }
 
 async function build() {
-  process.argv = process.argv.splice(0, 2);
+  const argv = [...process.argv];
+  process.argv = [];
   await clean();
   await import("./esbuild.config.js");
+  process.argv = argv;
 }
 
 async function dev() {
   process.env.NODE_ENV = "development";
   // Run build to prepare browser assets for fastify-static
-  process.argv = ["jeasx", "build"];
   await build();
   // Start the dev environment
   process.argv[2] = "start";
