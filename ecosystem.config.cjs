@@ -12,13 +12,7 @@ module.exports = {
       name: "jeasx:build:routes",
       script: "node_modules/jeasx/esbuild.config.js",
       args: "routes",
-      watch: [
-        "src/**/*.js",
-        "src/**/*.jsx",
-        "src/**/*.ts",
-        "src/**/*.tsx",
-        "src/**/*.json",
-      ],
+      watch: ["js", "jsx", "ts", "tsx", "json"].map((ext) => `src/**/*.${ext}`),
       ignore_watch: ["src/browser"],
       autorestart: false,
     },
@@ -26,13 +20,11 @@ module.exports = {
       name: "jeasx:build:js",
       script: "node_modules/jeasx/esbuild.config.js",
       args: "js",
-      watch: [
-        "src/browser/**/*.js",
-        "src/browser/**/*.jsx",
-        "src/browser/**/*.ts",
-        "src/browser/**/*.tsx",
-        "src/browser/**/*.json",
-      ],
+      watch: ["browser", "shared"].flatMap((folder) =>
+        ["js", "jsx", "ts", "tsx", "json"].map(
+          (ext) => `src/${folder}/**/*.${ext}`
+        )
+      ),
       autorestart: false,
     },
     {
