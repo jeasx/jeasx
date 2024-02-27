@@ -20,7 +20,9 @@ module.exports = {
       name: "jeasx:build:js",
       script: "node_modules/jeasx/esbuild.config.js",
       args: "js",
-      watch: ["js", "jsx", "ts", "tsx", "json"].map((ext) => `src/**/*.${ext}`),
+      watch: ["js", "jsx", "ts", "tsx", "json"].map(
+        (ext) => `src/browser/**/*.${ext}`
+      ),
       autorestart: false,
     },
     {
