@@ -20,8 +20,11 @@ module.exports = {
       name: "jeasx:build:js",
       script: "node_modules/jeasx/esbuild.config.js",
       args: "js",
-      watch: ["js", "jsx", "ts", "tsx", "json"].map(
-        (ext) => `src/browser/**/*.${ext}`
+      watch: (process.env.JEASX_BUILD_JS_WATCH
+        ? process.env.JEASX_BUILD_JS_WATCH.replace(/\s/g, "").split(",")
+        : ["src/browser"]
+      ).flatMap((path) =>
+        ["js", "jsx", "ts", "tsx", "json"].map((ext) => `${path}/**/*.${ext}`)
       ),
       autorestart: false,
     },
@@ -29,7 +32,7 @@ module.exports = {
       name: "jeasx:build:css",
       script: "node_modules/jeasx/esbuild.config.js",
       args: "css",
-      watch: ["src/browser/**/*.css"],
+      watch: ["src/**/*.css"],
       autorestart: false,
     },
   ],
