@@ -35,7 +35,7 @@
     "dotenv": "16.4.5",
     "esbuild": "0.20.2",
     "fastify": "4.26.2",
-    "jsx-async-runtime": "0.1.7",
+    "jsx-async-runtime": "0.1.8",
     "pm2": "5.3.1"
   },
   "scripts": {
