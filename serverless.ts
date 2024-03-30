@@ -145,7 +145,9 @@ serverless.all("*", async (request, reply) => {
 
   // Render JSX or return raw response
   if (isJSX(response)) {
-    return await renderToString(response);
+    return await renderToString(response, {
+      indent: NODE_ENV_IS_DEVELOPMENT ? 2 : 0,
+    });
   } else {
     return response;
   }
