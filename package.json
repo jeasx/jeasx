@@ -31,7 +31,7 @@
     "@fastify/request-context": "5.1.0",
     "@fastify/static": "7.0.3",
     "@fastify/url-data": "5.4.0",
-    "@types/node": "20.12.4",
+    "@types/node": "20.12.5",
     "dotenv": "16.4.5",
     "esbuild": "0.20.2",
     "fastify": "4.26.2",
