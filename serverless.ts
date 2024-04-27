@@ -2,7 +2,9 @@ import fastifyAccepts from "@fastify/accepts";
 import fastifyCookie from "@fastify/cookie";
 import fastifyFormbody from "@fastify/formbody";
 import fastifyMultipart from "@fastify/multipart";
-import fastifyRequestContext from "@fastify/request-context";
+import fastifyRequestContext, {
+  requestContext,
+} from "@fastify/request-context";
 import fastifyStatic from "@fastify/static";
 import fastifyUrlData from "@fastify/url-data";
 import "dotenv/config";
@@ -11,6 +13,12 @@ import { renderToString } from "jsx-async-runtime";
 import { createHash } from "node:crypto";
 import { readFile, stat } from "node:fs/promises";
 import { join } from "node:path";
+
+declare module "@fastify/request-context" {
+  interface RequestContextData {
+    response?: (payload: unknown) => Promise<unknown>;
+  }
+}
 
 const NODE_ENV_IS_DEVELOPMENT = process.env.NODE_ENV === "development";
 
@@ -57,7 +65,7 @@ serverless.register(fastifyStatic, {
 
 // Handle all requests
 serverless.all("*", async (request, reply) => {
-  let response;
+  let response: any;
 
   // Extract pathname without query parameters
   const requestPath = request.urlData().path;
@@ -74,7 +82,7 @@ serverless.all("*", async (request, reply) => {
     .concat("");
 
   // Transform "/a/b/c" into ["/a/b/[c]", "/a/b/c/[index]"]
-  const generateEdges = (path) => {
+  const generateEdges = (path: string) => {
     const edges = [];
     if (path) {
       const lastSegment = path.lastIndexOf("/") + 1;
@@ -143,14 +151,13 @@ serverless.all("*", async (request, reply) => {
     reply.header("Content-Type", "text/html; charset=utf-8");
   }
 
-  // Render JSX or return raw response
-  if (isJSX(response)) {
-    return await renderToString(response);
-  } else {
-    return response;
-  }
+  const payload = isJSX(response) ? await renderToString(response) : response;
+  const responseHandler = requestContext.get("response");
+  return typeof responseHandler === "function"
+    ? await responseHandler(payload)
+    : payload;
 
-  function isJSX(obj) {
+  function isJSX(obj: any) {
     return typeof obj === "object" && "type" in obj && "props" in obj;
   }
 });
