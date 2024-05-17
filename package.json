@@ -31,9 +31,9 @@
     "@fastify/request-context": "5.1.0",
     "@fastify/static": "7.0.4",
     "@fastify/url-data": "5.4.0",
-    "@types/node": "20.12.10",
+    "@types/node": "20.12.12",
     "dotenv": "16.4.5",
-    "esbuild": "0.21.1",
+    "esbuild": "0.21.3",
     "fastify": "4.27.0",
     "jsx-async-runtime": "0.2.1",
     "pm2": "5.3.1"
