@@ -33,7 +33,7 @@
     "@fastify/url-data": "5.4.0",
     "@types/node": "20.14.9",
     "dotenv": "16.4.5",
-    "esbuild": "0.22.0",
+    "esbuild": "0.23.0",
     "fastify": "4.28.1",
     "jsx-async-runtime": "0.2.2",
     "pm2": "5.4.1"
