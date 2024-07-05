@@ -9,7 +9,7 @@ import fastifyStatic from "@fastify/static";
 import fastifyUrlData from "@fastify/url-data";
 import "dotenv/config";
 import Fastify from "fastify";
-import { renderToString } from "jsx-async-runtime";
+import { jsxToString } from "jsx-async-runtime";
 import { createHash } from "node:crypto";
 import { readFile, stat } from "node:fs/promises";
 import { join } from "node:path";
@@ -151,7 +151,7 @@ serverless.all("*", async (request, reply) => {
     reply.header("Content-Type", "text/html; charset=utf-8");
   }
 
-  const payload = isJSX(response) ? await renderToString(response) : response;
+  const payload = isJSX(response) ? await jsxToString(response) : response;
   const responseHandler = requestContext.get("response");
   return typeof responseHandler === "function"
     ? await responseHandler(payload)
