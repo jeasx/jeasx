@@ -67,6 +67,9 @@ serverless.register(fastifyStatic, {
 serverless.all("*", async (request, reply) => {
   let response: any;
 
+  // Global context object for route handlers
+  const context = {};
+
   // Extract pathname without query parameters
   const requestPath = request.urlData().path;
 
@@ -123,7 +126,7 @@ serverless.all("*", async (request, reply) => {
     // Call the handler with request, reply and optional props
     response = await (
       await import(`file://${modulePath}${hash}`)
-    ).default({
+    ).default.call(context, {
       request,
       reply,
       ...(typeof response === "object" ? response : {}),
@@ -151,7 +154,9 @@ serverless.all("*", async (request, reply) => {
     reply.header("Content-Type", "text/html; charset=utf-8");
   }
 
-  const payload = isJSX(response) ? await jsxToString(response) : response;
+  const payload = isJSX(response)
+    ? await jsxToString.call(context, response)
+    : response;
   const responseHandler = requestContext.get("response");
   return typeof responseHandler === "function"
     ? await responseHandler(payload)

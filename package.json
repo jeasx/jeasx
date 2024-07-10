@@ -31,12 +31,12 @@
     "@fastify/request-context": "5.1.0",
     "@fastify/static": "7.0.4",
     "@fastify/url-data": "5.4.0",
-    "@types/node": "20.14.9",
+    "@types/node": "20.14.10",
     "dotenv": "16.4.5",
     "esbuild": "0.23.0",
     "fastify": "4.28.1",
-    "jsx-async-runtime": "0.3.0",
-    "pm2": "5.4.1"
+    "jsx-async-runtime": "0.4.0",
+    "pm2": "5.4.2"
   },
   "scripts": {
     "build": "esbuild --platform=node --format=esm --minify-whitespace --outdir=. serverless.ts"
