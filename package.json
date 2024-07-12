@@ -39,6 +39,6 @@
     "pm2": "5.4.2"
   },
   "scripts": {
-    "build": "esbuild --platform=node --format=esm --minify-whitespace --outdir=. serverless.ts"
+    "build": "esbuild --platform=node --format=esm --outdir=. serverless.ts"
   }
 }
