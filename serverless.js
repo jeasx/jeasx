@@ -78,6 +78,8 @@ serverless.all("*", async (request, reply) => {
     });
     if (reply.sent) {
       return;
+    } else if (typeof response === "string" || Buffer.isBuffer(response)) {
+      break;
     } else if (pathname.endsWith("/[...guard].js") && (response === void 0 || !isJSX(response))) {
       continue;
     } else if (pathname.endsWith("/[404].js")) {

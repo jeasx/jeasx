@@ -39,17 +39,17 @@ serverless.register(fastifyStatic, {
   wildcard: false,
   setHeaders: FASTIFY_STATIC_HEADERS
     ? (reply, path) => {
-      for (const [suffix, headers] of Object.entries(
-        FASTIFY_STATIC_HEADERS
-      )) {
-        if (path.endsWith(suffix)) {
-          for (const [key, value] of Object.entries(headers)) {
-            reply.setHeader(key, value);
+        for (const [suffix, headers] of Object.entries(
+          FASTIFY_STATIC_HEADERS
+        )) {
+          if (path.endsWith(suffix)) {
+            for (const [key, value] of Object.entries(headers)) {
+              reply.setHeader(key, value);
+            }
+            return;
           }
-          return;
         }
       }
-    }
     : undefined,
 });
 
@@ -108,9 +108,9 @@ serverless.all("*", async (request, reply) => {
     // Build content hash in development, so we can refresh code via "query string hack".
     const hash = NODE_ENV_IS_DEVELOPMENT
       ? "?" +
-      createHash("sha1")
-        .update(await readFile(modulePath, "utf-8"))
-        .digest("hex")
+        createHash("sha1")
+          .update(await readFile(modulePath, "utf-8"))
+          .digest("hex")
       : "";
 
     // Call the handler with request, reply and optional props
@@ -124,6 +124,8 @@ serverless.all("*", async (request, reply) => {
 
     if (reply.sent) {
       return;
+    } else if (typeof response === "string" || Buffer.isBuffer(response)) {
+      break;
     } else if (
       pathname.endsWith("/[...guard].js") &&
       (response === undefined || !isJSX(response))
