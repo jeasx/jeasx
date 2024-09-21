@@ -49,6 +49,18 @@ serverless.register(fastifyStatic, {
     : undefined,
 });
 
+// Add path without query parameters to request
+declare module "fastify" {
+  interface FastifyRequest {
+    path: string;
+  }
+}
+
+serverless.decorateRequest("path", "");
+serverless.addHook("onRequest", async (request, reply) => {
+  request.path = request.url.split("?", 1)[0];
+});
+
 // Handle all requests
 serverless.all("*", async (request, reply) => {
   let response;
@@ -56,11 +68,8 @@ serverless.all("*", async (request, reply) => {
   // Global context object for route handlers
   const context = {};
 
-  // Extract pathname without query parameters
-  const [requestPath] = request.url.split("?", 1);
-
   // Transform "/a/b/c" into ["/a/b/c", "/a/b", "/a", ""]
-  const pathSegments = requestPath
+  const pathSegments = request.path
     .split("/")
     .filter((segment) => segment !== "")
     .reduce((acc, segment) => {

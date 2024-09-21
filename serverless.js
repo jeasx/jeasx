@@ -35,11 +35,14 @@ serverless.register(fastifyStatic, {
     }
   } : void 0
 });
+serverless.decorateRequest("path", "");
+serverless.addHook("onRequest", async (request, reply) => {
+  request.path = request.url.split("?", 1)[0];
+});
 serverless.all("*", async (request, reply) => {
   let response;
   const context = {};
-  const [requestPath] = request.url.split("?", 1);
-  const pathSegments = requestPath.split("/").filter((segment) => segment !== "").reduce((acc, segment) => {
+  const pathSegments = request.path.split("/").filter((segment) => segment !== "").reduce((acc, segment) => {
     acc.push((acc.length > 0 ? acc[acc.length - 1] : "") + "/" + segment);
     return acc;
   }, []).reverse().concat("");
