@@ -24,13 +24,13 @@
     "jeasx": "cli.js"
   },
   "dependencies": {
-    "@fastify/cookie": "10.0.0",
-    "@fastify/formbody": "8.0.0",
-    "@fastify/multipart": "9.0.0",
-    "@fastify/static": "8.0.0",
-    "@types/node": "20.16.5",
+    "@fastify/cookie": "10.0.1",
+    "@fastify/formbody": "8.0.1",
+    "@fastify/multipart": "9.0.1",
+    "@fastify/static": "8.0.1",
+    "@types/node": "22.5.5",
     "dotenv": "16.4.5",
-    "esbuild": "0.23.1",
+    "esbuild": "0.24.0",
     "fastify": "5.0.0",
     "jsx-async-runtime": "0.5.1",
     "pm2": "5.4.2"
