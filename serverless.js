@@ -37,7 +37,8 @@ serverless.register(fastifyStatic, {
 });
 serverless.decorateRequest("path", "");
 serverless.addHook("onRequest", async (request, reply) => {
-  request.path = request.url.split("?", 1)[0];
+  const index = request.url.indexOf("?");
+  request.path = index === -1 ? request.url : request.url.slice(0, index);
 });
 serverless.all("*", async (request, reply) => {
   let response;
