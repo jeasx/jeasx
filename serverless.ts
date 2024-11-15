@@ -33,6 +33,7 @@ serverless.register(fastifyStatic, {
   root: ["public", "dist/browser"].map((dir) => join(process.cwd(), dir)),
   prefix: "/",
   wildcard: false,
+  cacheControl: false,
   setHeaders: FASTIFY_STATIC_HEADERS
     ? (reply, path) => {
         for (const [suffix, headers] of Object.entries(
