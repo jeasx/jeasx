@@ -1,10 +1,7 @@
 import "dotenv/config";
 import * as esbuild from "esbuild";
 
-const BUILD_TIME =
-  process.env.NODE_ENV === "development"
-    ? `"snapshot"`
-    : `"${Date.now().toString(36)}"`;
+const BUILD_TIME = `"${Date.now().toString(36)}"`;
 
 const BROWSER_PUBLIC_ENV = Object.keys(process.env)
   .filter((key) => key.startsWith("BROWSER_PUBLIC_"))
