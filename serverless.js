@@ -17,7 +17,7 @@ const serverless = Fastify({
 serverless.register(fastifyCookie);
 serverless.register(fastifyFormbody);
 serverless.register(fastifyMultipart);
-const FASTIFY_STATIC_HEADERS = !NODE_ENV_IS_DEVELOPMENT && process.env.FASTIFY_STATIC_HEADERS ? JSON.parse(String(process.env.FASTIFY_STATIC_HEADERS)) : void 0;
+const FASTIFY_STATIC_HEADERS = process.env.FASTIFY_STATIC_HEADERS ? JSON.parse(String(process.env.FASTIFY_STATIC_HEADERS)) : void 0;
 serverless.register(fastifyStatic, {
   root: ["public", "dist/browser"].map((dir) => join(process.cwd(), dir)),
   prefix: "/",

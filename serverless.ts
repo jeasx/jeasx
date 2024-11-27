@@ -24,10 +24,9 @@ serverless.register(fastifyFormbody);
 serverless.register(fastifyMultipart);
 
 // Setup static file plugin
-const FASTIFY_STATIC_HEADERS =
-  !NODE_ENV_IS_DEVELOPMENT && process.env.FASTIFY_STATIC_HEADERS
-    ? JSON.parse(String(process.env.FASTIFY_STATIC_HEADERS))
-    : undefined;
+const FASTIFY_STATIC_HEADERS = process.env.FASTIFY_STATIC_HEADERS
+  ? JSON.parse(String(process.env.FASTIFY_STATIC_HEADERS))
+  : undefined;
 
 serverless.register(fastifyStatic, {
   root: ["public", "dist/browser"].map((dir) => join(process.cwd(), dir)),
