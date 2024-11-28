@@ -1,4 +1,4 @@
-import "dotenv/config";
+import "dotenv-flow/config";
 import * as esbuild from "esbuild";
 
 const BUILD_TIME = `"${Date.now().toString(36)}"`;

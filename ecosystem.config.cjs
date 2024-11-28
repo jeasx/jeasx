@@ -1,4 +1,4 @@
-require("dotenv/config");
+require("dotenv-flow/config");
 
 module.exports = {
   apps: [
