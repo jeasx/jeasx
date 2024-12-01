@@ -1,7 +1,7 @@
 {
   "name": "jeasx",
   "version": "1.0.2",
-  "description": "jeasx - the ease of JSX with the power of SSR",
+  "description": "Jeasx - the ease of JSX with the power of SSR",
   "keywords": [
     "jsx",
     "ssr",
@@ -32,7 +32,7 @@
     "dotenv-flow": "4.1.0",
     "esbuild": "0.24.0",
     "fastify": "5.1.0",
-    "jsx-async-runtime": "0.6.0",
+    "jsx-async-runtime": "0.6.1",
     "pm2": "5.4.3"
   },
   "scripts": {
