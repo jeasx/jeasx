@@ -64,44 +64,26 @@ serverless.addHook("onRequest", async (request, reply) => {
 
 // Handle all requests
 serverless.all("*", async (request, reply) => {
-  let response;
+  let response: any;
 
   // Global context object for route handlers
   const context = {};
 
-  // Transform "/a/b/c" into ["/a/b/c", "/a/b", "/a", ""]
-  const pathSegments = request.path
-    .split("/")
-    .filter((segment) => segment !== "")
-    .reduce((acc, segment) => {
-      acc.push((acc.length > 0 ? acc[acc.length - 1] : "") + "/" + segment);
-      return acc;
-    }, [])
-    .reverse()
-    .concat("");
+  // "/a/b/c" => ["/a/b/c", "/a/b", "/a", ""]
+  const segments = generateSegments(request.path);
 
-  // Transform "/a/b/c" into ["/a/b/[c]", "/a/b/c/[index]"]
-  const generateEdges = (path) => {
-    const edges = [];
-    if (path) {
-      const lastSegment = path.lastIndexOf("/") + 1;
-      edges.push(
-        `${path.substring(0, lastSegment)}[${path.substring(lastSegment)}]`
-      );
-    }
-    edges.push(`${path}/[index]`);
-    return edges;
-  };
+  // "/a/b/c" => ["/a/b/[c]", "/a/b/c/[index]"]
+  const edges = generateEdges(segments[0]);
 
   // Find route handler for the request
   for (const pathname of [
-    ...pathSegments
+    ...segments
       .slice()
       .reverse() // [...guard]s are evaluated from top to bottom
       .map((segment) => `routes${segment}/[...guard].js`),
-    ...generateEdges(pathSegments[0]).map((segment) => `routes${segment}.js`),
-    ...pathSegments.map((segment) => `routes${segment}/[...path].js`),
-    ...pathSegments.map((segment) => `routes${segment}/[404].js`),
+    ...edges.map((edge) => `routes${edge}.js`),
+    ...segments.map((segment) => `routes${segment}/[...path].js`),
+    ...segments.map((segment) => `routes${segment}/[404].js`),
   ]) {
     const modulePath = join(process.cwd(), "dist", pathname);
 
@@ -162,9 +144,39 @@ serverless.all("*", async (request, reply) => {
     ? await responseHandler(payload)
     : payload;
 
-  function isJSX(obj) {
+  function isJSX(obj: any): boolean {
     return typeof obj === "object" && "type" in obj && "props" in obj;
   }
 });
+
+/**
+ * Transforms "/a/b/c" into ["/a/b/c", "/a/b", "/a", ""]
+ */
+function generateSegments(path: string): string[] {
+  return path
+    .split("/")
+    .filter((segment) => segment !== "")
+    .reduce((acc, segment) => {
+      acc.push((acc.length > 0 ? acc[acc.length - 1] : "") + "/" + segment);
+      return acc;
+    }, [])
+    .reverse()
+    .concat("");
+}
+
+/**
+ * Transforms "/a/b/c" into ["/a/b/[c]", "/a/b/c/[index]"]
+ */
+function generateEdges(path: string): string[] {
+  const edges = [];
+  if (path) {
+    const lastSegment = path.lastIndexOf("/") + 1;
+    edges.push(
+      `${path.substring(0, lastSegment)}[${path.substring(lastSegment)}]`
+    );
+  }
+  edges.push(`${path}/[index]`);
+  return edges;
+}
 
 export default serverless;

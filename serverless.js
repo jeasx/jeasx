@@ -44,26 +44,13 @@ serverless.addHook("onRequest", async (request, reply) => {
 serverless.all("*", async (request, reply) => {
   let response;
   const context = {};
-  const pathSegments = request.path.split("/").filter((segment) => segment !== "").reduce((acc, segment) => {
-    acc.push((acc.length > 0 ? acc[acc.length - 1] : "") + "/" + segment);
-    return acc;
-  }, []).reverse().concat("");
-  const generateEdges = (path) => {
-    const edges = [];
-    if (path) {
-      const lastSegment = path.lastIndexOf("/") + 1;
-      edges.push(
-        `${path.substring(0, lastSegment)}[${path.substring(lastSegment)}]`
-      );
-    }
-    edges.push(`${path}/[index]`);
-    return edges;
-  };
+  const segments = generateSegments(request.path);
+  const edges = generateEdges(segments[0]);
   for (const pathname of [
-    ...pathSegments.slice().reverse().map((segment) => `routes${segment}/[...guard].js`),
-    ...generateEdges(pathSegments[0]).map((segment) => `routes${segment}.js`),
-    ...pathSegments.map((segment) => `routes${segment}/[...path].js`),
-    ...pathSegments.map((segment) => `routes${segment}/[404].js`)
+    ...segments.slice().reverse().map((segment) => `routes${segment}/[...guard].js`),
+    ...edges.map((edge) => `routes${edge}.js`),
+    ...segments.map((segment) => `routes${segment}/[...path].js`),
+    ...segments.map((segment) => `routes${segment}/[404].js`)
   ]) {
     const modulePath = join(process.cwd(), "dist", pathname);
     try {
@@ -102,6 +89,23 @@ serverless.all("*", async (request, reply) => {
     return typeof obj === "object" && "type" in obj && "props" in obj;
   }
 });
+function generateSegments(path) {
+  return path.split("/").filter((segment) => segment !== "").reduce((acc, segment) => {
+    acc.push((acc.length > 0 ? acc[acc.length - 1] : "") + "/" + segment);
+    return acc;
+  }, []).reverse().concat("");
+}
+function generateEdges(path) {
+  const edges = [];
+  if (path) {
+    const lastSegment = path.lastIndexOf("/") + 1;
+    edges.push(
+      `${path.substring(0, lastSegment)}[${path.substring(lastSegment)}]`
+    );
+  }
+  edges.push(`${path}/[index]`);
+  return edges;
+}
 var serverless_default = serverless;
 export {
   serverless_default as default
