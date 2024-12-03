@@ -62,30 +62,25 @@ serverless.addHook("onRequest", async (request, reply) => {
   request.path = index === -1 ? request.url : request.url.slice(0, index);
 });
 
+// Cache effective routes for requested paths
+const routesByPathCache: { [path: string]: string[] } = {};
+
 // Handle all requests
 serverless.all("*", async (request, reply) => {
-  let response: any;
+  let response: unknown;
 
   // Global context object for route handlers
   const context = {};
 
-  // "/a/b/c" => ["/a/b/c", "/a/b", "/a", ""]
-  const segments = generateSegments(request.path);
+  // Current request path
+  const path = request.path;
 
-  // "/a/b/c" => ["/a/b/[c]", "/a/b/c/[index]"]
-  const edges = generateEdges(segments[0]);
+  // Effective routes for the current path
+  const routes: string[] = [];
 
-  // Find route handler for the request
-  for (const pathname of [
-    ...segments
-      .slice()
-      .reverse() // [...guard]s are evaluated from top to bottom
-      .map((segment) => `routes${segment}/[...guard].js`),
-    ...edges.map((edge) => `routes${edge}.js`),
-    ...segments.map((segment) => `routes${segment}/[...path].js`),
-    ...segments.map((segment) => `routes${segment}/[404].js`),
-  ]) {
-    const modulePath = join(process.cwd(), "dist", pathname);
+  // Execute route handlers for current request
+  for (const route of routesByPathCache[path] || generateRoutes(path)) {
+    const modulePath = join(process.cwd(), "dist", route);
 
     try {
       (await stat(modulePath)).isFile();
@@ -93,7 +88,10 @@ serverless.all("*", async (request, reply) => {
       continue;
     }
 
-    // Build content hash in development, so we can refresh code via "query string hack".
+    // The current route exists, so add it to effective routes
+    routes.push(route);
+
+    // Build content hash in development, so we can refresh code via "query string hack"
     const hash = NODE_ENV_IS_DEVELOPMENT
       ? "?" +
         createHash("sha1")
@@ -115,11 +113,11 @@ serverless.all("*", async (request, reply) => {
     } else if (typeof response === "string" || Buffer.isBuffer(response)) {
       break;
     } else if (
-      pathname.endsWith("/[...guard].js") &&
+      route.endsWith("/[...guard].js") &&
       (response === undefined || !isJSX(response))
     ) {
       continue;
-    } else if (pathname.endsWith("/[404].js")) {
+    } else if (route.endsWith("/[404].js")) {
       reply.status(404);
       break;
     } else if (reply.statusCode === 404) {
@@ -127,6 +125,11 @@ serverless.all("*", async (request, reply) => {
     } else {
       break;
     }
+  }
+
+  // Cache effective routes for non-development environments
+  if (!NODE_ENV_IS_DEVELOPMENT && reply.statusCode !== 404) {
+    routesByPathCache[path] = routes;
   }
 
   // Make sure a Content-Type header is set
@@ -143,14 +146,34 @@ serverless.all("*", async (request, reply) => {
   return typeof responseHandler === "function"
     ? await responseHandler(payload)
     : payload;
-
-  function isJSX(obj: any): boolean {
-    return typeof obj === "object" && "type" in obj && "props" in obj;
-  }
 });
 
 /**
- * Transforms "/a/b/c" into ["/a/b/c", "/a/b", "/a", ""]
+ * Generates all possible routes based on the given input path.
+ */
+function generateRoutes(path: string): string[] {
+  // "/a/b/c" => ["/a/b/c", "/a/b", "/a", ""]
+  const segments = generateSegments(path);
+
+  // "/a/b/c" => ["/a/b/[c]", "/a/b/c/[index]"]
+  const edges = generateEdges(segments[0]);
+
+  return [
+    ...segments
+      .slice()
+      .reverse() // [...guard]s are evaluated from top to bottom
+      .map((segment) => `routes${segment}/[...guard].js`),
+    ...edges.map((edge) => `routes${edge}.js`),
+    ...segments.map((segment) => `routes${segment}/[...path].js`),
+    ...segments.map((segment) => `routes${segment}/[404].js`),
+  ];
+}
+
+/**
+ * Transforms a given path into an array of all its segments.
+ *
+ * @example
+ * generateSegments("/a/b/c") => ["/a/b/c", "/a/b", "/a", ""]
  */
 function generateSegments(path: string): string[] {
   return path
@@ -165,7 +188,10 @@ function generateSegments(path: string): string[] {
 }
 
 /**
- * Transforms "/a/b/c" into ["/a/b/[c]", "/a/b/c/[index]"]
+ * Generates edge routes for the given input path.
+ *
+ * An edge is either a route with a named segment (e.g. "/a/b/[c]")
+ * or a route with an "index" segment (e.g. "/a/b/c/[index]").
  */
 function generateEdges(path: string): string[] {
   const edges = [];
@@ -177,6 +203,15 @@ function generateEdges(path: string): string[] {
   }
   edges.push(`${path}/[index]`);
   return edges;
+}
+
+/**
+ * Determines if a given object is a JSX element.
+ */
+function isJSX(obj: unknown): boolean {
+  return (
+    typeof obj === "object" && obj !== null && "type" in obj && "props" in obj
+  );
 }
 
 export default serverless;

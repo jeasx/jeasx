@@ -41,23 +41,20 @@ serverless.addHook("onRequest", async (request, reply) => {
   const index = request.url.indexOf("?");
   request.path = index === -1 ? request.url : request.url.slice(0, index);
 });
+const routesByPathCache = {};
 serverless.all("*", async (request, reply) => {
   let response;
   const context = {};
-  const segments = generateSegments(request.path);
-  const edges = generateEdges(segments[0]);
-  for (const pathname of [
-    ...segments.slice().reverse().map((segment) => `routes${segment}/[...guard].js`),
-    ...edges.map((edge) => `routes${edge}.js`),
-    ...segments.map((segment) => `routes${segment}/[...path].js`),
-    ...segments.map((segment) => `routes${segment}/[404].js`)
-  ]) {
-    const modulePath = join(process.cwd(), "dist", pathname);
+  const path = request.path;
+  const routes = [];
+  for (const route of routesByPathCache[path] || generateRoutes(path)) {
+    const modulePath = join(process.cwd(), "dist", route);
     try {
       (await stat(modulePath)).isFile();
     } catch {
       continue;
     }
+    routes.push(route);
     const hash = NODE_ENV_IS_DEVELOPMENT ? "?" + createHash("sha1").update(await readFile(modulePath, "utf-8")).digest("hex") : "";
     response = await (await import(`file://${modulePath}${hash}`)).default.call(context, {
       request,
@@ -68,9 +65,9 @@ serverless.all("*", async (request, reply) => {
       return;
     } else if (typeof response === "string" || Buffer.isBuffer(response)) {
       break;
-    } else if (pathname.endsWith("/[...guard].js") && (response === void 0 || !isJSX(response))) {
+    } else if (route.endsWith("/[...guard].js") && (response === void 0 || !isJSX(response))) {
       continue;
-    } else if (pathname.endsWith("/[404].js")) {
+    } else if (route.endsWith("/[404].js")) {
       reply.status(404);
       break;
     } else if (reply.statusCode === 404) {
@@ -79,16 +76,26 @@ serverless.all("*", async (request, reply) => {
       break;
     }
   }
+  if (!NODE_ENV_IS_DEVELOPMENT && reply.statusCode !== 404) {
+    routesByPathCache[path] = routes;
+  }
   if (!reply.hasHeader("Content-Type")) {
     reply.header("Content-Type", "text/html; charset=utf-8");
   }
   const payload = isJSX(response) ? await jsxToString.call(context, response) : response;
   const responseHandler = context["response"];
   return typeof responseHandler === "function" ? await responseHandler(payload) : payload;
-  function isJSX(obj) {
-    return typeof obj === "object" && "type" in obj && "props" in obj;
-  }
 });
+function generateRoutes(path) {
+  const segments = generateSegments(path);
+  const edges = generateEdges(segments[0]);
+  return [
+    ...segments.slice().reverse().map((segment) => `routes${segment}/[...guard].js`),
+    ...edges.map((edge) => `routes${edge}.js`),
+    ...segments.map((segment) => `routes${segment}/[...path].js`),
+    ...segments.map((segment) => `routes${segment}/[404].js`)
+  ];
+}
 function generateSegments(path) {
   return path.split("/").filter((segment) => segment !== "").reduce((acc, segment) => {
     acc.push((acc.length > 0 ? acc[acc.length - 1] : "") + "/" + segment);
@@ -105,6 +112,9 @@ function generateEdges(path) {
   }
   edges.push(`${path}/[index]`);
   return edges;
+}
+function isJSX(obj) {
+  return typeof obj === "object" && obj !== null && "type" in obj && "props" in obj;
 }
 var serverless_default = serverless;
 export {
