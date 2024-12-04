@@ -49,10 +49,12 @@ serverless.all("*", async (request, reply) => {
   const routes = [];
   for (const route of routesByPathCache[path] || generateRoutes(path)) {
     const modulePath = join(process.cwd(), "dist", route);
-    try {
-      (await stat(modulePath)).isFile();
-    } catch {
-      continue;
+    if (routesByPathCache[path] === void 0) {
+      try {
+        (await stat(modulePath)).isFile();
+      } catch {
+        continue;
+      }
     }
     routes.push(route);
     const hash = NODE_ENV_IS_DEVELOPMENT ? "?" + createHash("sha1").update(await readFile(modulePath, "utf-8")).digest("hex") : "";

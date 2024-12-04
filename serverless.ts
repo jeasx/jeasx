@@ -82,10 +82,12 @@ serverless.all("*", async (request, reply) => {
   for (const route of routesByPathCache[path] || generateRoutes(path)) {
     const modulePath = join(process.cwd(), "dist", route);
 
-    try {
-      (await stat(modulePath)).isFile();
-    } catch {
-      continue;
+    if (routesByPathCache[path] === undefined) {
+      try {
+        (await stat(modulePath)).isFile();
+      } catch {
+        continue;
+      }
     }
 
     // The current route exists, so add it to effective routes
