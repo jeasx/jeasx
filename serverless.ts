@@ -82,6 +82,7 @@ serverless.all("*", async (request, reply) => {
   for (const route of routesByPathCache[path] || generateRoutes(path)) {
     const modulePath = join(process.cwd(), "dist", route);
 
+    // Only check route existence on the first request for a path
     if (routesByPathCache[path] === undefined) {
       try {
         (await stat(modulePath)).isFile();
@@ -129,7 +130,7 @@ serverless.all("*", async (request, reply) => {
     }
   }
 
-  // Cache effective routes for non-development environments
+  // Skip caching of routes in development
   if (!NODE_ENV_IS_DEVELOPMENT && reply.statusCode !== 404) {
     routesByPathCache[path] = routes;
   }
