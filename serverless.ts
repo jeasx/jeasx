@@ -212,9 +212,7 @@ function generateEdges(path: string): string[] {
  * Determines if a given object is a JSX element.
  */
 function isJSX(obj: unknown): boolean {
-  return (
-    typeof obj === "object" && obj !== null && "type" in obj && "props" in obj
-  );
+  return !!obj && typeof obj === "object" && "type" in obj && "props" in obj;
 }
 
 export default serverless;
