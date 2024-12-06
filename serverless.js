@@ -11,8 +11,9 @@ import { join } from "node:path";
 const NODE_ENV_IS_DEVELOPMENT = process.env.NODE_ENV === "development";
 const serverless = Fastify({
   logger: true,
-  disableRequestLogging: NODE_ENV_IS_DEVELOPMENT,
-  bodyLimit: Number(process.env.FASTIFY_BODY_LIMIT) || void 0
+  disableRequestLogging: Boolean(process.env.FASTIFY_DISABLE_REQUEST_LOGGING),
+  bodyLimit: Number(process.env.FASTIFY_BODY_LIMIT) || void 0,
+  trustProxy: Boolean(process.env.FASTIFY_TRUST_PROXY)
 });
 serverless.register(fastifyCookie);
 serverless.register(fastifyFormbody);
