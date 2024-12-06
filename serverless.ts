@@ -104,8 +104,7 @@ serverless.all("*", async (request, reply) => {
     let module = modulesCache[modulePath];
     if (!module) {
       if (NODE_ENV_IS_DEVELOPMENT) {
-        // Use a content hash in development,
-        // so we can refresh code via "query string hack"
+        // Use hash to refresh modified modules in development
         module = await import(
           `file://${modulePath}?${createHash("sha1")
             .update(await readFile(modulePath, "utf-8"))
