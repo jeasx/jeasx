@@ -101,7 +101,7 @@ function generateRoutes(path) {
   const segments = generateSegments(path);
   const edges = generateEdges(segments[0]);
   return [
-    ...segments.slice().reverse().map((segment) => `routes${segment}/[...guard].js`),
+    ...segments.toReversed().map((segment) => `routes${segment}/[...guard].js`),
     ...edges.map((edge) => `routes${edge}.js`),
     ...segments.map((segment) => `routes${segment}/[...path].js`),
     ...segments.map((segment) => `routes${segment}/[404].js`)

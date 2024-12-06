@@ -177,8 +177,7 @@ function generateRoutes(path: string): string[] {
 
   return [
     ...segments
-      .slice()
-      .reverse() // [...guard]s are evaluated from top to bottom
+      .toReversed() // [...guard]s are evaluated from top to bottom
       .map((segment) => `routes${segment}/[...guard].js`),
     ...edges.map((edge) => `routes${edge}.js`),
     ...segments.map((segment) => `routes${segment}/[...path].js`),
