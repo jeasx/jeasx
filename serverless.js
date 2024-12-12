@@ -42,26 +42,27 @@ serverless.addHook("onRequest", async (request, reply) => {
   const index = request.url.indexOf("?");
   request.path = index === -1 ? request.url : request.url.slice(0, index);
 });
-const routesCache = {};
 const modulesCache = {};
 const cwd = process.cwd();
 serverless.all("*", async (request, reply) => {
   let response;
   const context = {};
   const path = request.path;
-  const routes = [];
-  for (const route of routesCache[path] || generateRoutes(path)) {
+  for (const route of generateRoutes(path)) {
     const modulePath = join(cwd, "dist", route);
-    if (routesCache[path] === void 0) {
+    let module = modulesCache[modulePath];
+    if (module === null) {
+      continue;
+    }
+    if (module === void 0) {
       try {
         (await stat(modulePath)).isFile();
       } catch {
+        if (!NODE_ENV_IS_DEVELOPMENT) {
+          modulesCache[modulePath] = null;
+        }
         continue;
       }
-    }
-    routes.push(route);
-    let module = modulesCache[modulePath];
-    if (!module) {
       if (NODE_ENV_IS_DEVELOPMENT) {
         module = await import(`file://${modulePath}?${createHash("sha1").update(await readFile(modulePath, "utf-8")).digest("hex")}`);
       } else {
@@ -87,9 +88,6 @@ serverless.all("*", async (request, reply) => {
     } else {
       break;
     }
-  }
-  if (!NODE_ENV_IS_DEVELOPMENT && reply.statusCode !== 404) {
-    routesCache[path] = routes;
   }
   if (!reply.hasHeader("Content-Type")) {
     reply.header("Content-Type", "text/html; charset=utf-8");

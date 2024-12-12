@@ -63,11 +63,8 @@ serverless.addHook("onRequest", async (request, reply) => {
   request.path = index === -1 ? request.url : request.url.slice(0, index);
 });
 
-// Cache effective routes for requested paths
-const routesCache: { [path: string]: string[] } = {};
-
-// Cache loaded modules
-const modulesCache: { [path: string]: { default: Function } } = {};
+// Cache loaded modules, null means not found
+const modulesCache: { [path: string]: { default: Function } | null } = {};
 
 // Store current working directory
 const cwd = process.cwd();
@@ -82,37 +79,40 @@ serverless.all("*", async (request, reply) => {
   // Current request path
   const path = request.path;
 
-  // Effective routes for the current path
-  const routes: string[] = [];
-
   // Execute route handlers for current request
-  for (const route of routesCache[path] || generateRoutes(path)) {
+  for (const route of generateRoutes(path)) {
     const modulePath = join(cwd, "dist", route);
 
-    // Only check route existence on the first request for a path
-    if (routesCache[path] === undefined) {
+    // Resolve module via cache
+    let module = modulesCache[modulePath];
+
+    // Module was cached as not found?
+    if (module === null) {
+      continue;
+    }
+
+    // Module was not loaded yet?
+    if (module === undefined) {
+      // Check file existence of module
       try {
         (await stat(modulePath)).isFile();
       } catch {
+        if (!NODE_ENV_IS_DEVELOPMENT) {
+          // Cache module as not found
+          modulesCache[modulePath] = null;
+        }
         continue;
       }
-    }
 
-    // The current route exists, so add it to effective routes
-    routes.push(route);
-
-    // Check if module is already loaded
-    let module = modulesCache[modulePath];
-    if (!module) {
       if (NODE_ENV_IS_DEVELOPMENT) {
-        // Use hash to refresh modified modules in development
+        // Use file hash to (re)load modified modules in development
         module = await import(
           `file://${modulePath}?${createHash("sha1")
             .update(await readFile(modulePath, "utf-8"))
             .digest("hex")}`
         );
       } else {
-        // Modules are cached only for non-development
+        // Load and cache module for non-development
         module = modulesCache[modulePath] = await import(
           `file://${modulePath}`
         );
@@ -143,11 +143,6 @@ serverless.all("*", async (request, reply) => {
     } else {
       break;
     }
-  }
-
-  // Skip caching of routes in development
-  if (!NODE_ENV_IS_DEVELOPMENT && reply.statusCode !== 404) {
-    routesCache[path] = routes;
   }
 
   // Make sure a Content-Type header is set
