@@ -28,7 +28,7 @@
     "@fastify/formbody": "8.0.2",
     "@fastify/multipart": "9.0.2",
     "@fastify/static": "8.0.4",
-    "@types/node": "22.10.6",
+    "@types/node": "22.10.7",
     "dotenv-flow": "4.1.0",
     "esbuild": "0.24.2",
     "fastify": "5.2.1",
