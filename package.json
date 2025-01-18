@@ -32,7 +32,7 @@
     "dotenv-flow": "4.1.0",
     "esbuild": "0.24.2",
     "fastify": "5.2.1",
-    "jsx-async-runtime": "0.7.0",
+    "jsx-async-runtime": "0.7.1",
     "pm2": "5.4.3"
   },
   "scripts": {
