@@ -37,6 +37,7 @@ serverless.register(fastifyStatic, {
     }
   } : void 0
 });
+serverless.decorateRequest("route", "");
 serverless.decorateRequest("path", "");
 serverless.addHook("onRequest", async (request, reply) => {
   const index = request.url.indexOf("?");
@@ -49,7 +50,7 @@ serverless.all("*", async (request, reply) => {
   const context = {};
   const path = request.path;
   for (const route of generateRoutes(path)) {
-    const modulePath = join(cwd, "dist", route);
+    const modulePath = join(cwd, "dist", `routes${route}.js`);
     let module = modulesCache[modulePath];
     if (module === null) {
       continue;
@@ -69,6 +70,7 @@ serverless.all("*", async (request, reply) => {
         module = modulesCache[modulePath] = await import(`file://${modulePath}`);
       }
     }
+    request.route = route;
     response = await module.default.call(context, {
       request,
       reply,
@@ -78,9 +80,9 @@ serverless.all("*", async (request, reply) => {
       return;
     } else if (typeof response === "string" || Buffer.isBuffer(response)) {
       break;
-    } else if (route.endsWith("/[...guard].js") && (response === void 0 || !isJSX(response))) {
+    } else if (route.endsWith("/[...guard]") && (response === void 0 || !isJSX(response))) {
       continue;
-    } else if (route.endsWith("/[404].js")) {
+    } else if (route.endsWith("/[404]")) {
       reply.status(404);
       break;
     } else if (reply.statusCode === 404) {
@@ -100,10 +102,10 @@ function generateRoutes(path) {
   const segments = generateSegments(path);
   const edges = generateEdges(segments[0]);
   return [
-    ...segments.toReversed().map((segment) => `routes${segment}/[...guard].js`),
-    ...edges.map((edge) => `routes${edge}.js`),
-    ...segments.map((segment) => `routes${segment}/[...path].js`),
-    ...segments.map((segment) => `routes${segment}/[404].js`)
+    ...segments.toReversed().map((segment) => `${segment}/[...guard]`),
+    ...edges.map((edge) => `${edge}`),
+    ...segments.map((segment) => `${segment}/[...path]`),
+    ...segments.map((segment) => `${segment}/[404]`)
   ];
 }
 function generateSegments(path) {
