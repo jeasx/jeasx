@@ -3,52 +3,18 @@ import fastifyFormbody from "@fastify/formbody";
 import fastifyMultipart from "@fastify/multipart";
 import fastifyStatic from "@fastify/static";
 import "dotenv-flow/config";
-import Fastify from "fastify";
+import Fastify, { FastifyReply, FastifyRequest } from "fastify";
 import { jsxToString } from "jsx-async-runtime";
 import { createHash } from "node:crypto";
 import { readFile, stat } from "node:fs/promises";
 import { join } from "node:path";
 
 const NODE_ENV_IS_DEVELOPMENT = process.env.NODE_ENV === "development";
+const CWD = process.cwd();
 
-// Create a Fastify app instance
-const serverless = Fastify({
-  logger: true,
-  disableRequestLogging: Boolean(process.env.FASTIFY_DISABLE_REQUEST_LOGGING),
-  bodyLimit: Number(process.env.FASTIFY_BODY_LIMIT) || undefined,
-  trustProxy: Boolean(process.env.FASTIFY_TRUST_PROXY),
-});
-
-// Register required plugins
-serverless.register(fastifyCookie);
-serverless.register(fastifyFormbody);
-serverless.register(fastifyMultipart);
-
-// Setup static file plugin
-const FASTIFY_STATIC_HEADERS = process.env.FASTIFY_STATIC_HEADERS
-  ? JSON.parse(String(process.env.FASTIFY_STATIC_HEADERS))
-  : undefined;
-
-serverless.register(fastifyStatic, {
-  root: ["public", "dist/browser"].map((dir) => join(process.cwd(), dir)),
-  prefix: "/",
-  wildcard: false,
-  cacheControl: false,
-  setHeaders: FASTIFY_STATIC_HEADERS
-    ? (reply, path) => {
-        for (const [suffix, headers] of Object.entries(
-          FASTIFY_STATIC_HEADERS
-        )) {
-          if (path.endsWith(suffix)) {
-            for (const [key, value] of Object.entries(headers)) {
-              reply.setHeader(key, value);
-            }
-            return;
-          }
-        }
-      }
-    : undefined,
-});
+const FASTIFY_STATIC_HEADERS =
+  process.env.FASTIFY_STATIC_HEADERS &&
+  JSON.parse(process.env.FASTIFY_STATIC_HEADERS);
 
 declare module "fastify" {
   interface FastifyRequest {
@@ -57,21 +23,51 @@ declare module "fastify" {
   }
 }
 
-serverless.decorateRequest("route", "");
-serverless.decorateRequest("path", "");
-serverless.addHook("onRequest", async (request, reply) => {
-  const index = request.url.indexOf("?");
-  request.path = index === -1 ? request.url : request.url.slice(0, index);
-});
+// Create and export a Fastify app instance
+export default Fastify({
+  logger: true,
+  disableRequestLogging: Boolean(process.env.FASTIFY_DISABLE_REQUEST_LOGGING),
+  bodyLimit: Number(process.env.FASTIFY_BODY_LIMIT) || undefined,
+  trustProxy: Boolean(process.env.FASTIFY_TRUST_PROXY),
+})
+  .register(fastifyCookie)
+  .register(fastifyFormbody)
+  .register(fastifyMultipart)
+  .register(fastifyStatic, {
+    root: ["public", "dist/browser"].map((dir) => join(CWD, dir)),
+    prefix: "/",
+    wildcard: false,
+    cacheControl: false,
+    setHeaders: FASTIFY_STATIC_HEADERS
+      ? (reply, path) => {
+          for (const [suffix, headers] of Object.entries(
+            FASTIFY_STATIC_HEADERS
+          )) {
+            if (path.endsWith(suffix)) {
+              for (const [key, value] of Object.entries(headers)) {
+                reply.setHeader(key, value);
+              }
+              return;
+            }
+          }
+        }
+      : undefined,
+  })
+  .decorateRequest("route", "")
+  .decorateRequest("path", "")
+  .addHook("onRequest", async (request, reply) => {
+    const index = request.url.indexOf("?");
+    request.path = index === -1 ? request.url : request.url.slice(0, index);
+  })
+  .all("*", handler);
 
-// Cache loaded modules, null means not found
-const modulesCache: { [path: string]: { default: Function } | null } = {};
+// Cache for resolved route modules, 'null' means no module exists.
+const modules: { [path: string]: { default: Function } | null } = {};
 
-// Store current working directory
-const cwd = process.cwd();
-
-// Handle all requests
-serverless.all("*", async (request, reply) => {
+/**
+ * Resolves route module based on the request path and execute it.
+ */
+async function handler(request: FastifyRequest, reply: FastifyReply) {
   let response: unknown;
 
   // Global context object for route handlers
@@ -82,10 +78,10 @@ serverless.all("*", async (request, reply) => {
 
   // Execute route handlers for current request
   for (const route of generateRoutes(path)) {
-    const modulePath = join(cwd, "dist", `routes${route}.js`);
+    const modulePath = join(CWD, "dist", `routes${route}.js`);
 
     // Resolve module via cache
-    let module = modulesCache[modulePath];
+    let module = modules[modulePath];
 
     // Module was cached as not found?
     if (module === null) {
@@ -100,7 +96,7 @@ serverless.all("*", async (request, reply) => {
       } catch {
         if (!NODE_ENV_IS_DEVELOPMENT) {
           // Cache module as not found
-          modulesCache[modulePath] = null;
+          modules[modulePath] = null;
         }
         continue;
       }
@@ -114,9 +110,7 @@ serverless.all("*", async (request, reply) => {
         );
       } else {
         // Load and cache module for non-development
-        module = modulesCache[modulePath] = await import(
-          `file://${modulePath}`
-        );
+        module = modules[modulePath] = await import(`file://${modulePath}`);
       }
     }
 
@@ -132,11 +126,15 @@ serverless.all("*", async (request, reply) => {
 
     if (reply.sent) {
       return;
-    } else if (typeof response === "string" || Buffer.isBuffer(response)) {
+    } else if (
+      typeof response === "string" ||
+      Buffer.isBuffer(response) ||
+      isJSX(response)
+    ) {
       break;
     } else if (
       route.endsWith("/[...guard]") &&
-      (response === undefined || !isJSX(response))
+      (response === undefined || typeof response === "object")
     ) {
       continue;
     } else if (route.endsWith("/[404]")) {
@@ -163,7 +161,7 @@ serverless.all("*", async (request, reply) => {
   return typeof responseHandler === "function"
     ? await responseHandler(payload)
     : payload;
-});
+}
 
 /**
  * Generates all possible routes based on the given input path.
@@ -227,5 +225,3 @@ function generateEdges(path: string): string[] {
 function isJSX(obj: unknown): boolean {
   return !!obj && typeof obj === "object" && "type" in obj && "props" in obj;
 }
-
-export default serverless;
