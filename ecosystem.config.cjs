@@ -13,7 +13,9 @@ module.exports = {
       script: "node_modules/jeasx/esbuild.config.js",
       args: "routes",
       watch: ["js", "jsx", "ts", "tsx", "json"].map((ext) => `src/**/*.${ext}`),
-      ignore_watch: ["src/browser"],
+      ignore_watch: process.env.JEASX_BUILD_ROUTES_IGNORE_WATCH
+        ? process.env.JEASX_BUILD_ROUTES_IGNORE_WATCH.split(",")
+        : ["src/browser"],
       autorestart: false,
     },
     {
@@ -21,7 +23,7 @@ module.exports = {
       script: "node_modules/jeasx/esbuild.config.js",
       args: "js",
       watch: (process.env.JEASX_BUILD_JS_WATCH
-        ? process.env.JEASX_BUILD_JS_WATCH.replace(/\s/g, "").split(",")
+        ? process.env.JEASX_BUILD_JS_WATCH.split(",")
         : ["src/browser"]
       ).flatMap((path) =>
         ["js", "jsx", "ts", "tsx", "json"].map((ext) => `${path}/**/*.${ext}`)
