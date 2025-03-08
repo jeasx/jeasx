@@ -15,7 +15,8 @@ var serverless_default = Fastify({
   logger: true,
   disableRequestLogging: Boolean(process.env.FASTIFY_DISABLE_REQUEST_LOGGING),
   bodyLimit: Number(process.env.FASTIFY_BODY_LIMIT) || void 0,
-  trustProxy: Boolean(process.env.FASTIFY_TRUST_PROXY)
+  trustProxy: Boolean(process.env.FASTIFY_TRUST_PROXY),
+  rewriteUrl: process.env.FASTIFY_REWRITE_URL && new Function(`return ${process.env.FASTIFY_REWRITE_URL}`)()
 }).register(fastifyCookie).register(fastifyFormbody).register(fastifyMultipart).register(fastifyStatic, {
   root: ["public", "dist/browser"].map((dir) => join(CWD, dir)),
   prefix: "/",

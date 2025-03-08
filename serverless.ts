@@ -29,6 +29,9 @@ export default Fastify({
   disableRequestLogging: Boolean(process.env.FASTIFY_DISABLE_REQUEST_LOGGING),
   bodyLimit: Number(process.env.FASTIFY_BODY_LIMIT) || undefined,
   trustProxy: Boolean(process.env.FASTIFY_TRUST_PROXY),
+  rewriteUrl:
+    process.env.FASTIFY_REWRITE_URL &&
+    new Function(`return ${process.env.FASTIFY_REWRITE_URL}`)(),
 })
   .register(fastifyCookie)
   .register(fastifyFormbody)
