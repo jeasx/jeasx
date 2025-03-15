@@ -32,7 +32,7 @@
     "esbuild": "0.25.1",
     "fastify": "5.2.1",
     "jsx-async-runtime": "0.8.1",
-    "pm2": "5.4.3"
+    "pm2": "6.0.5"
   },
   "scripts": {
     "build": "esbuild --platform=node --format=esm --outdir=. serverless.ts"
