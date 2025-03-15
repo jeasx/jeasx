@@ -28,9 +28,11 @@ declare module "fastify" {
 // Create and export a Fastify app instance
 export default Fastify({
   logger: true,
-  disableRequestLogging: Boolean(process.env.FASTIFY_DISABLE_REQUEST_LOGGING),
+  disableRequestLogging: JSON.parse(
+    process.env.FASTIFY_DISABLE_REQUEST_LOGGING || "false"
+  ),
   bodyLimit: Number(process.env.FASTIFY_BODY_LIMIT) || undefined,
-  trustProxy: Boolean(process.env.FASTIFY_TRUST_PROXY),
+  trustProxy: JSON.parse(process.env.FASTIFY_TRUST_PROXY || "false"),
   rewriteUrl:
     process.env.FASTIFY_REWRITE_URL &&
     new Function(`return ${process.env.FASTIFY_REWRITE_URL}`)(),
