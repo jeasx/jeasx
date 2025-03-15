@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import fs from "node:fs/promises";
-import loadenv from "./loadenv.js";
+import env from "./env.js";
 
 switch (process.argv[2]) {
   case "start":
@@ -35,7 +35,7 @@ async function start() {
 }
 
 async function build() {
-  loadenv();
+  env();
   const argv = [...process.argv];
   process.argv = [];
   await clean();

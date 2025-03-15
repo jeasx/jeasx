@@ -10,7 +10,7 @@ import { existsSync } from "node:fs";
  * 4. .env.<NODE_ENV>
  * 5. .env.<NODE_ENV>.local
  */
-export default function loadenv() {
+export default function env() {
   const files = [".env.defaults", ".env", ".env.local"];
 
   if (process.env.NODE_ENV) {
