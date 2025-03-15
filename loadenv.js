@@ -1,7 +1,14 @@
 import { existsSync } from "node:fs";
 
 /**
- * Load environment variables into process.env from .env* files.
+ * Load environment variables from .env* files
+ * into process.env in the following order:
+ *
+ * 1. .env.defaults
+ * 2. .env
+ * 3. .env.local
+ * 4. .env.<NODE_ENV>
+ * 5. .env.<NODE_ENV>.local
  */
 export default function loadenv() {
   const files = [".env.defaults", ".env", ".env.local"];
