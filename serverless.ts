@@ -66,7 +66,14 @@ export default Fastify({
     const index = request.url.indexOf("?");
     request.path = index === -1 ? request.url : request.url.slice(0, index);
   })
-  .all("*", handler);
+  .all("*", async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      return await handler(request, reply);
+    } catch (error) {
+      console.error("❌", error);
+      throw error;
+    }
+  });
 
 // Cache for resolved route modules, 'null' means no module exists.
 const modules: { [path: string]: { default: Function } | null } = {};

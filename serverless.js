@@ -40,7 +40,14 @@ var serverless_default = Fastify({
 }).decorateRequest("route", "").decorateRequest("path", "").addHook("onRequest", async (request, reply) => {
   const index = request.url.indexOf("?");
   request.path = index === -1 ? request.url : request.url.slice(0, index);
-}).all("*", handler);
+}).all("*", async (request, reply) => {
+  try {
+    return await handler(request, reply);
+  } catch (error) {
+    console.error("\u274C", error);
+    throw error;
+  }
+});
 const modules = {};
 async function handler(request, reply) {
   let response;
