@@ -20,8 +20,11 @@ export default function env() {
     );
   }
 
-  files.filter(existsSync).forEach((file) => {
-    console.info(`🌻 Loading ${file}`);
-    process.loadEnvFile(file);
-  });
+  files
+    .toReversed()
+    .filter(existsSync)
+    .forEach((file) => {
+      console.info(`🌻 Loading ${file}`);
+      process.loadEnvFile(file);
+    });
 }
