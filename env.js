@@ -11,6 +11,11 @@ import { existsSync } from "node:fs";
  * 5. .env.<NODE_ENV>.local
  */
 export default function env() {
+  if (!process.loadEnvFile) {
+    console.warn("🌻 <node:process.loadEnvFile> is not available");
+    return;
+  }
+
   const files = [".env.defaults", ".env", ".env.local"];
 
   if (process.env.NODE_ENV) {
