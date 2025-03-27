@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 import fs from "node:fs/promises";
-import env from "./env.js";
 
 switch (process.argv[2]) {
   case "start":
@@ -35,23 +34,13 @@ async function start() {
 }
 
 async function build() {
-  env();
-  const argv = [...process.argv];
-  process.argv = [];
-  await clean();
   await import("./esbuild.config.js");
-  process.argv = argv;
 }
 
 async function dev() {
   process.env.NODE_ENV = "development";
-  // Run build to prepare browser assets for fastify-static
   await build();
-  // Start the dev environment
-  process.argv[2] = "start";
-  process.argv[3] ??= "node_modules/jeasx/ecosystem.config.cjs";
-  // @ts-ignore
-  await import("pm2/bin/pm2-runtime");
+  await start();
 }
 
 async function clean() {

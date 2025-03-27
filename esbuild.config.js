@@ -1,4 +1,7 @@
 import * as esbuild from "esbuild";
+import env from "./env.js";
+
+env();
 
 const BUILD_TIME = `"${Date.now().toString(36)}"`;
 
@@ -16,53 +19,20 @@ const ESBUILD_BROWSER_TARGET = process.env.ESBUILD_BROWSER_TARGET
   ? process.env.ESBUILD_BROWSER_TARGET.replace(/\s/g, "").split(",")
   : ["chrome126", "edge126", "firefox128", "safari17"];
 
-const args = process.argv.slice(2);
-
-const builds = [];
-for (const arg of args.length ? args : ["routes", "js", "css"]) {
-  switch (arg) {
-    case "routes":
-      builds.push(
-        buildServer(
-          "src/routes/**/[*].js",
-          "src/routes/**/[*].ts",
-          "src/routes/**/[*].jsx",
-          "src/routes/**/[*].tsx"
-        )
-      );
-      break;
-    case "js":
-      builds.push(
-        buildBrowser(
-          "src/browser/**/index.js",
-          "src/browser/**/index.ts",
-          "src/browser/**/index.jsx",
-          "src/browser/**/index.tsx"
-        )
-      );
-      break;
-    case "css":
-      builds.push(buildBrowser("src/browser/**/index.css"));
-      break;
-    default:
-      console.info(`Error: Unknown argument '${arg}'.`);
-      process.exit(1);
-  }
-}
-
-await Promise.all(builds);
-
-/**
- * @param {string[]} entryPoints
- */
-function buildServer(...entryPoints) {
-  esbuild.build({
-    entryPoints,
+/** @type import("esbuild").BuildOptions[] */
+const buildOptions = [
+  {
+    entryPoints: ["js", "ts", "jsx", "tsx"].map(
+      (ext) => `src/routes/**/[*].${ext}`
+    ),
     define: {
       "process.env.BUILD_TIME": BUILD_TIME,
     },
     minify: process.env.NODE_ENV !== "development",
     logLevel: "info",
+    logOverride: {
+      "empty-glob": "silent",
+    },
     color: true,
     bundle: true,
     sourcemap: true,
@@ -71,18 +41,17 @@ function buildServer(...entryPoints) {
     outdir: "dist",
     platform: "neutral",
     packages: "external",
-  });
-}
-
-/**
- * @param {string[]} entryPoints
- */
-function buildBrowser(...entryPoints) {
-  esbuild.build({
-    entryPoints,
+  },
+  {
+    entryPoints: ["js", "ts", "jsx", "tsx", "css"].map(
+      (ext) => `src/browser/**/index.${ext}`
+    ),
     define: BROWSER_PUBLIC_ENV,
     minify: process.env.NODE_ENV !== "development",
     logLevel: "info",
+    logOverride: {
+      "empty-glob": "silent",
+    },
     color: true,
     bundle: true,
     sourcemap: true,
@@ -106,5 +75,13 @@ function buildBrowser(...entryPoints) {
       "*.woff",
       "*.woff2",
     ],
-  });
-}
+  },
+];
+
+buildOptions.forEach(async (options) => {
+  if (process.env.NODE_ENV === "development") {
+    (await esbuild.context(options)).watch();
+  } else {
+    await esbuild.build(options);
+  }
+});
