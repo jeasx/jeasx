@@ -4,8 +4,7 @@ import fastifyMultipart from "@fastify/multipart";
 import fastifyStatic from "@fastify/static";
 import Fastify, { FastifyReply, FastifyRequest } from "fastify";
 import { jsxToString } from "jsx-async-runtime";
-import { createHash } from "node:crypto";
-import { readFile, stat } from "node:fs/promises";
+import { stat } from "node:fs/promises";
 import { join } from "node:path";
 import env from "./env.js";
 
@@ -116,12 +115,15 @@ async function handler(request: FastifyRequest, reply: FastifyReply) {
       }
 
       if (NODE_ENV_IS_DEVELOPMENT) {
-        // Use file hash to (re)load modified modules in development
-        module = await import(
-          `file://${modulePath}?${createHash("sha1")
-            .update(await readFile(modulePath, "utf-8"))
-            .digest("hex")}`
-        );
+        if (typeof require === "function") {
+          // Bun: remove module from cache before importing
+          delete require.cache[modulePath];
+          module = await import(`file://${modulePath}`);
+        } else {
+          // Node: use modification time as query parameter to update modules
+          const version = (await stat(modulePath)).mtime.getTime();
+          module = await import(`file://${modulePath}?${version}`);
+        }
       } else {
         // Load and cache module for non-development
         module = modules[modulePath] = await import(`file://${modulePath}`);

@@ -4,8 +4,7 @@ import fastifyMultipart from "@fastify/multipart";
 import fastifyStatic from "@fastify/static";
 import Fastify from "fastify";
 import { jsxToString } from "jsx-async-runtime";
-import { createHash } from "node:crypto";
-import { readFile, stat } from "node:fs/promises";
+import { stat } from "node:fs/promises";
 import { join } from "node:path";
 import env from "./env.js";
 env();
@@ -69,7 +68,13 @@ async function handler(request, reply) {
         continue;
       }
       if (NODE_ENV_IS_DEVELOPMENT) {
-        module = await import(`file://${modulePath}?${createHash("sha1").update(await readFile(modulePath, "utf-8")).digest("hex")}`);
+        if (typeof require === "function") {
+          delete require.cache[modulePath];
+          module = await import(`file://${modulePath}`);
+        } else {
+          const version = (await stat(modulePath)).mtime.getTime();
+          module = await import(`file://${modulePath}?${version}`);
+        }
       } else {
         module = modules[modulePath] = await import(`file://${modulePath}`);
       }
