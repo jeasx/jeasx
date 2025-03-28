@@ -34,6 +34,6 @@
     "jsx-async-runtime": "1.0.0"
   },
   "scripts": {
-    "build": "esbuild --platform=node --format=esm --outdir=. serverless.ts"
+    "build": "esbuild --platform=node --format=esm --sourcemap=linked --sources-content=false --outdir=. serverless.ts"
   }
 }

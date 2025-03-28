@@ -135,3 +135,4 @@ function isJSX(obj) {
 export {
   serverless_default as default
 };
+//# sourceMappingURL=serverless.js.map
