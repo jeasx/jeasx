@@ -19,7 +19,7 @@ const ESBUILD_BROWSER_TARGET = process.env.ESBUILD_BROWSER_TARGET
   ? process.env.ESBUILD_BROWSER_TARGET.replace(/\s/g, "").split(",")
   : ["chrome126", "edge126", "firefox128", "safari17"];
 
-/** @type import("esbuild").BuildOptions[] */
+/** @type esbuild.BuildOptions[] */
 const buildOptions = [
   {
     entryPoints: ["js", "ts", "jsx", "tsx"].map(
