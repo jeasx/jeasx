@@ -30,7 +30,6 @@ switch (process.argv[2]) {
 }
 
 async function start() {
-  process.setSourceMapsEnabled(true);
   await import("./server.js");
 }
 
@@ -40,6 +39,7 @@ async function build() {
 
 async function dev() {
   process.env.NODE_ENV = "development";
+  process.setSourceMapsEnabled(true);
   await build();
   await start();
 }
