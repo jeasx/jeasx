@@ -30,6 +30,7 @@ switch (process.argv[2]) {
 }
 
 async function start() {
+  process.setSourceMapsEnabled(true);
   await import("./server.js");
 }
 
