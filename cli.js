@@ -40,6 +40,11 @@ async function build() {
 async function dev() {
   process.env.NODE_ENV = "development";
   process.setSourceMapsEnabled(true);
+  // Bun: https://bun.sh/docs/runtime/nodejs-apis#process
+  if (process.sourceMapsEnabled === undefined) {
+    // @ts-ignore
+    process.sourceMapsEnabled = true;
+  }
   await build();
   await start();
 }
