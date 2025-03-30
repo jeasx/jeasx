@@ -116,11 +116,14 @@ async function handler(request: FastifyRequest, reply: FastifyReply) {
 
       if (NODE_ENV_IS_DEVELOPMENT) {
         if (typeof require === "function") {
-          // Bun: remove module from cache before importing
+          // Bun: Remove module from cache before importing.
+          // Reloading modules this way is not atomic.
+          // Concurrent requests may result in a
+          // "TypeError: Requested module is not instantiated yet".
           delete require.cache[modulePath];
           module = await import(`file://${modulePath}`);
         } else {
-          // Node: use modification time as query parameter to update modules
+          // Node.js: Use timestamp as query parameter to update modules.
           const version = (await stat(modulePath)).mtime.getTime();
           module = await import(`file://${modulePath}?${version}`);
         }
