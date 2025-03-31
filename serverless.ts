@@ -105,7 +105,11 @@ async function handler(request: FastifyRequest, reply: FastifyReply) {
     if (module === undefined) {
       // Check file existence of module
       try {
-        (await stat(modulePath)).isFile();
+        // If path doesn't exist, fs.stat throws an error.
+        if (!(await stat(modulePath)).isFile()) {
+          // If path is not a file, we throw an error to continue.
+          throw Error(`ENOENT: no such file, stat '${modulePath}'`);
+        }
       } catch {
         if (!NODE_ENV_IS_DEVELOPMENT) {
           // Cache module as not found

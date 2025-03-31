@@ -60,7 +60,9 @@ async function handler(request, reply) {
     }
     if (module === void 0) {
       try {
-        (await stat(modulePath)).isFile();
+        if (!(await stat(modulePath)).isFile()) {
+          throw Error(`ENOENT: no such file, stat '${modulePath}'`);
+        }
       } catch {
         if (!NODE_ENV_IS_DEVELOPMENT) {
           modules[modulePath] = null;
