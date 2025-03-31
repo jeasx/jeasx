@@ -69,7 +69,9 @@ async function handler(request, reply) {
       }
       if (NODE_ENV_IS_DEVELOPMENT) {
         if (typeof require === "function") {
-          delete require.cache[modulePath];
+          if (require.cache[modulePath]) {
+            delete require.cache[modulePath];
+          }
           module = await import(`file://${modulePath}`);
         } else {
           const version = (await stat(modulePath)).mtime.getTime();
