@@ -74,8 +74,8 @@ async function handler(request, reply) {
           }
           module = await import(`file://${modulePath}`);
         } else {
-          const version = (await stat(modulePath)).mtime.getTime();
-          module = await import(`file://${modulePath}?${version}`);
+          const mtime = (await stat(modulePath)).mtime.getTime();
+          module = await import(`file://${modulePath}?${mtime}`);
         }
       } else {
         module = modules[modulePath] = await import(`file://${modulePath}`);

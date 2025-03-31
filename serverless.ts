@@ -124,8 +124,8 @@ async function handler(request: FastifyRequest, reply: FastifyReply) {
           module = await import(`file://${modulePath}`);
         } else {
           // Node.js: Use timestamp as query parameter to update modules.
-          const version = (await stat(modulePath)).mtime.getTime();
-          module = await import(`file://${modulePath}?${version}`);
+          const mtime = (await stat(modulePath)).mtime.getTime();
+          module = await import(`file://${modulePath}?${mtime}`);
         }
       } else {
         // Load and cache module for non-development
