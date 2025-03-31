@@ -60,27 +60,24 @@ async function handler(request, reply) {
     }
     if (module === void 0) {
       try {
-        if (!(await stat(modulePath)).isFile()) {
-          throw Error(`ENOENT: no such file, stat '${modulePath}'`);
+        if (NODE_ENV_IS_DEVELOPMENT) {
+          if (typeof require === "function") {
+            if (require.cache[modulePath]) {
+              delete require.cache[modulePath];
+            }
+            module = await import(`file://${modulePath}`);
+          } else {
+            const mtime = (await stat(modulePath)).mtime.getTime();
+            module = await import(`file://${modulePath}?${mtime}`);
+          }
+        } else {
+          module = modules[modulePath] = await import(`file://${modulePath}`);
         }
       } catch {
         if (!NODE_ENV_IS_DEVELOPMENT) {
           modules[modulePath] = null;
         }
         continue;
-      }
-      if (NODE_ENV_IS_DEVELOPMENT) {
-        if (typeof require === "function") {
-          if (require.cache[modulePath]) {
-            delete require.cache[modulePath];
-          }
-          module = await import(`file://${modulePath}`);
-        } else {
-          const mtime = (await stat(modulePath)).mtime.getTime();
-          module = await import(`file://${modulePath}?${mtime}`);
-        }
-      } else {
-        module = modules[modulePath] = await import(`file://${modulePath}`);
       }
     }
     request.route = route;

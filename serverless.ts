@@ -103,12 +103,23 @@ async function handler(request: FastifyRequest, reply: FastifyReply) {
 
     // Module was not loaded yet?
     if (module === undefined) {
-      // Check file existence of module
       try {
-        // If path doesn't exist, fs.stat throws an error.
-        if (!(await stat(modulePath)).isFile()) {
-          // If path is not a file, we throw an error to continue.
-          throw Error(`ENOENT: no such file, stat '${modulePath}'`);
+        if (NODE_ENV_IS_DEVELOPMENT) {
+          if (typeof require === "function") {
+            // Bun: Remove module from cache before importing
+            // as query parameter for import is ignored (see Node.js).
+            if (require.cache[modulePath]) {
+              delete require.cache[modulePath];
+            }
+            module = await import(`file://${modulePath}`);
+          } else {
+            // Node.js: Use timestamp as query parameter to update modules.
+            const mtime = (await stat(modulePath)).mtime.getTime();
+            module = await import(`file://${modulePath}?${mtime}`);
+          }
+        } else {
+          // Load and cache module for non-development
+          module = modules[modulePath] = await import(`file://${modulePath}`);
         }
       } catch {
         if (!NODE_ENV_IS_DEVELOPMENT) {
@@ -116,24 +127,6 @@ async function handler(request: FastifyRequest, reply: FastifyReply) {
           modules[modulePath] = null;
         }
         continue;
-      }
-
-      if (NODE_ENV_IS_DEVELOPMENT) {
-        if (typeof require === "function") {
-          // Bun: Remove module from cache before importing
-          // as query parameter for import is ignored (see Node.js).
-          if (require.cache[modulePath]) {
-            delete require.cache[modulePath];
-          }
-          module = await import(`file://${modulePath}`);
-        } else {
-          // Node.js: Use timestamp as query parameter to update modules.
-          const mtime = (await stat(modulePath)).mtime.getTime();
-          module = await import(`file://${modulePath}?${mtime}`);
-        }
-      } else {
-        // Load and cache module for non-development
-        module = modules[modulePath] = await import(`file://${modulePath}`);
       }
     }
 
