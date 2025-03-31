@@ -15,7 +15,9 @@ import { existsSync } from "node:fs";
  */
 export default function env() {
   if (!process.loadEnvFile) {
-    console.warn("🌻 <process.loadEnvFile> is not available");
+    console.warn(
+      "🌻 <process.loadEnvFile> is not available. Please ensure your environment is properly configured."
+    );
     return;
   }
 
