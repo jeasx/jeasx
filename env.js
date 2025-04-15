@@ -14,27 +14,19 @@ import { existsSync } from "node:fs";
  * it will be not overwritten.
  */
 export default function env() {
-  if (!process.loadEnvFile) {
-    console.warn(
-      "🌻 <process.loadEnvFile> is not available. Please ensure your environment is properly configured."
-    );
-    return;
-  }
+  if (process.loadEnvFile) {
+    const files = [
+      ...(process.env.NODE_ENV
+        ? [`.env.${process.env.NODE_ENV}.local`, `.env.${process.env.NODE_ENV}`]
+        : []),
+      ".env.local",
+      ".env",
+      ".env.defaults",
+    ];
 
-  const files = [".env.defaults", ".env", ".env.local"];
-
-  if (process.env.NODE_ENV) {
-    files.push(
-      `.env.${process.env.NODE_ENV}`,
-      `.env.${process.env.NODE_ENV}.local`
-    );
-  }
-
-  files
-    .toReversed()
-    .filter(existsSync)
-    .forEach((file) => {
+    files.filter(existsSync).forEach((file) => {
       console.info(`🌻 Loading ${file}`);
       process.loadEnvFile(file);
     });
+  }
 }
