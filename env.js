@@ -15,18 +15,15 @@ import { existsSync } from "node:fs";
  */
 export default function env() {
   if (process.loadEnvFile) {
-    const files = [
+    [
       ...(process.env.NODE_ENV
         ? [`.env.${process.env.NODE_ENV}.local`, `.env.${process.env.NODE_ENV}`]
         : []),
       ".env.local",
       ".env",
       ".env.defaults",
-    ];
-
-    files.filter(existsSync).forEach((file) => {
-      console.info(`🌻 Loading ${file}`);
-      process.loadEnvFile(file);
-    });
+    ]
+      .filter(existsSync)
+      .forEach(process.loadEnvFile);
   }
 }
