@@ -32,7 +32,6 @@ var serverless_default = Fastify({
         for (const [key, value] of Object.entries(headers)) {
           reply.setHeader(key, value);
         }
-        return;
       }
     }
   } : void 0
