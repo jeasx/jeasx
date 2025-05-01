@@ -74,7 +74,7 @@ export default Fastify({
   });
 
 // Cache for resolved route modules, 'null' means no module exists.
-const modules: { [path: string]: { default: Function } | null } = {};
+const modules = new Map<string, { default: Function }>();
 
 /**
  * Resolves route module based on the request path and execute it.
@@ -90,10 +90,8 @@ async function handler(request: FastifyRequest, reply: FastifyReply) {
 
   // Execute route handlers for current request
   for (const route of generateRoutes(path)) {
-    const modulePath = join(CWD, "dist", `routes${route}.js`);
-
     // Resolve module via cache
-    let module = modules[modulePath];
+    let module = modules.get(route);
 
     // Module was cached as not found?
     if (module === null) {
@@ -103,6 +101,7 @@ async function handler(request: FastifyRequest, reply: FastifyReply) {
     // Module was not loaded yet?
     if (module === undefined) {
       try {
+        const modulePath = join(CWD, "dist", `routes${route}.js`);
         if (NODE_ENV_IS_DEVELOPMENT) {
           if (typeof require === "function") {
             // Bun: Remove module from cache before importing
@@ -118,12 +117,13 @@ async function handler(request: FastifyRequest, reply: FastifyReply) {
           }
         } else {
           // Load and cache module for non-development
-          module = modules[modulePath] = await import(`file://${modulePath}`);
+          module = await import(`file://${modulePath}`);
+          modules.set(route, module);
         }
       } catch {
         if (!NODE_ENV_IS_DEVELOPMENT) {
           // Cache module as not found
-          modules[modulePath] = null;
+          modules.set(route, null);
         }
         continue;
       }

@@ -46,19 +46,19 @@ var serverless_default = Fastify({
     throw error;
   }
 });
-const modules = {};
+const modules = /* @__PURE__ */ new Map();
 async function handler(request, reply) {
   let response;
   const context = {};
   const path = request.path;
   for (const route of generateRoutes(path)) {
-    const modulePath = join(CWD, "dist", `routes${route}.js`);
-    let module = modules[modulePath];
+    let module = modules.get(route);
     if (module === null) {
       continue;
     }
     if (module === void 0) {
       try {
+        const modulePath = join(CWD, "dist", `routes${route}.js`);
         if (NODE_ENV_IS_DEVELOPMENT) {
           if (typeof require === "function") {
             if (require.cache[modulePath]) {
@@ -70,11 +70,12 @@ async function handler(request, reply) {
             module = await import(`file://${modulePath}?${mtime}`);
           }
         } else {
-          module = modules[modulePath] = await import(`file://${modulePath}`);
+          module = await import(`file://${modulePath}`);
+          modules.set(route, module);
         }
       } catch {
         if (!NODE_ENV_IS_DEVELOPMENT) {
-          modules[modulePath] = null;
+          modules.set(route, null);
         }
         continue;
       }
