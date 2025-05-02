@@ -11,6 +11,7 @@ env();
 const NODE_ENV_IS_DEVELOPMENT = process.env.NODE_ENV === "development";
 const CWD = process.cwd();
 const FASTIFY_STATIC_HEADERS = process.env.FASTIFY_STATIC_HEADERS && JSON.parse(process.env.FASTIFY_STATIC_HEADERS);
+const JEASX_ROUTE_CACHE_LIMIT = process.env.JEASX_ROUTE_CACHE_LIMIT && JSON.parse(process.env.JEASX_ROUTE_CACHE_LIMIT);
 var serverless_default = Fastify({
   logger: true,
   disableRequestLogging: JSON.parse(
@@ -78,6 +79,10 @@ async function handler(request, reply) {
           modules.set(route, null);
         }
         continue;
+      } finally {
+        if (modules.size > JEASX_ROUTE_CACHE_LIMIT) {
+          modules.delete(modules.keys().next().value);
+        }
       }
     }
     request.route = route;

@@ -17,6 +17,10 @@ const FASTIFY_STATIC_HEADERS =
   process.env.FASTIFY_STATIC_HEADERS &&
   JSON.parse(process.env.FASTIFY_STATIC_HEADERS);
 
+const JEASX_ROUTE_CACHE_LIMIT =
+  process.env.JEASX_ROUTE_CACHE_LIMIT &&
+  JSON.parse(process.env.JEASX_ROUTE_CACHE_LIMIT);
+
 declare module "fastify" {
   interface FastifyRequest {
     path: string; // Path without query parameters
@@ -126,6 +130,11 @@ async function handler(request: FastifyRequest, reply: FastifyReply) {
           modules.set(route, null);
         }
         continue;
+      } finally {
+        // Remove oldest entry from cache if limit is reached
+        if (modules.size > JEASX_ROUTE_CACHE_LIMIT) {
+          modules.delete(modules.keys().next().value);
+        }
       }
     }
 
