@@ -132,7 +132,10 @@ async function handler(request: FastifyRequest, reply: FastifyReply) {
         continue;
       } finally {
         // Remove oldest entry from cache if limit is reached
-        if (modules.size > JEASX_ROUTE_CACHE_LIMIT) {
+        if (
+          typeof JEASX_ROUTE_CACHE_LIMIT === "number" &&
+          modules.size > JEASX_ROUTE_CACHE_LIMIT
+        ) {
           modules.delete(modules.keys().next().value);
         }
       }
