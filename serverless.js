@@ -37,6 +37,7 @@ var serverless_default = Fastify({
     }
   } : void 0
 }).decorateRequest("route", "").decorateRequest("path", "").addHook("onRequest", async (request, reply) => {
+  reply.header("Content-Type", "text/html; charset=utf-8");
   const index = request.url.indexOf("?");
   request.path = index === -1 ? request.url : request.url.slice(0, index);
 }).all("*", async (request, reply) => {
@@ -52,66 +53,71 @@ async function handler(request, reply) {
   let response;
   const context = {};
   const path = request.path;
-  for (const route of generateRoutes(path)) {
-    let module = modules.get(route);
-    if (module === null) {
-      continue;
-    }
-    if (module === void 0) {
-      try {
-        const modulePath = join(CWD, "dist", `routes${route}.js`);
-        if (NODE_ENV_IS_DEVELOPMENT) {
-          if (typeof require === "function") {
-            if (require.cache[modulePath]) {
-              delete require.cache[modulePath];
-            }
-            module = await import(`file://${modulePath}`);
-          } else {
-            const mtime = (await stat(modulePath)).mtime.getTime();
-            module = await import(`file://${modulePath}?${mtime}`);
-          }
-        } else {
-          module = await import(`file://${modulePath}`);
-          modules.set(route, module);
-        }
-      } catch {
-        if (!NODE_ENV_IS_DEVELOPMENT) {
-          modules.set(route, null);
-        }
+  try {
+    for (const route of generateRoutes(path)) {
+      let module = modules.get(route);
+      if (module === null) {
         continue;
-      } finally {
-        if (typeof JEASX_ROUTE_CACHE_LIMIT === "number" && modules.size > JEASX_ROUTE_CACHE_LIMIT) {
-          modules.delete(modules.keys().next().value);
+      }
+      if (module === void 0) {
+        try {
+          const modulePath = join(CWD, "dist", `routes${route}.js`);
+          if (NODE_ENV_IS_DEVELOPMENT) {
+            if (typeof require === "function") {
+              if (require.cache[modulePath]) {
+                delete require.cache[modulePath];
+              }
+              module = await import(`file://${modulePath}`);
+            } else {
+              const mtime = (await stat(modulePath)).mtime.getTime();
+              module = await import(`file://${modulePath}?${mtime}`);
+            }
+          } else {
+            module = await import(`file://${modulePath}`);
+            modules.set(route, module);
+          }
+        } catch {
+          if (!NODE_ENV_IS_DEVELOPMENT) {
+            modules.set(route, null);
+          }
+          continue;
+        } finally {
+          if (typeof JEASX_ROUTE_CACHE_LIMIT === "number" && modules.size > JEASX_ROUTE_CACHE_LIMIT) {
+            modules.delete(modules.keys().next().value);
+          }
         }
       }
+      request.route = route;
+      response = await module.default.call(context, {
+        request,
+        reply,
+        ...typeof response === "object" ? response : {}
+      });
+      if (reply.sent) {
+        return;
+      } else if (typeof response === "string" || Buffer.isBuffer(response) || isJSX(response)) {
+        break;
+      } else if (route.endsWith("/[...guard]") && (response === void 0 || typeof response === "object")) {
+        continue;
+      } else if (route.endsWith("/[404]")) {
+        reply.status(404);
+        break;
+      } else if (reply.statusCode === 404) {
+        continue;
+      } else {
+        break;
+      }
     }
-    request.route = route;
-    response = await module.default.call(context, {
-      request,
-      reply,
-      ...typeof response === "object" ? response : {}
-    });
-    if (reply.sent) {
-      return;
-    } else if (typeof response === "string" || Buffer.isBuffer(response) || isJSX(response)) {
-      break;
-    } else if (route.endsWith("/[...guard]") && (response === void 0 || typeof response === "object")) {
-      continue;
-    } else if (route.endsWith("/[404]")) {
-      reply.status(404);
-      break;
-    } else if (reply.statusCode === 404) {
-      continue;
+    return await renderJSX(response, context);
+  } catch (error) {
+    const errorHandler = context["errorHandler"];
+    if (typeof errorHandler === "function") {
+      response = await errorHandler(error, request, reply);
+      return await renderJSX(response, context);
     } else {
-      break;
+      throw error;
     }
   }
-  if (!reply.hasHeader("Content-Type")) {
-    reply.header("Content-Type", "text/html; charset=utf-8");
-  }
-  const payload = isJSX(response) ? await jsxToString.call(context, response) : response;
-  const responseHandler = context["response"];
-  return typeof responseHandler === "function" ? await responseHandler(payload) : payload;
 }
 function generateRoutes(path) {
   const segments = generateSegments(path);
@@ -142,6 +148,11 @@ function generateEdges(path) {
 }
 function isJSX(obj) {
   return !!obj && typeof obj === "object" && "type" in obj && "props" in obj;
+}
+async function renderJSX(response, context) {
+  const payload = isJSX(response) ? await jsxToString.call(context, response) : response;
+  const responseHandler = context["responseHandler"];
+  return typeof responseHandler === "function" ? await responseHandler(payload) : payload;
 }
 export {
   serverless_default as default

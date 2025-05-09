@@ -65,6 +65,9 @@ export default Fastify({
   .decorateRequest("route", "")
   .decorateRequest("path", "")
   .addHook("onRequest", async (request, reply) => {
+    // Set default content type to text/html
+    reply.header("Content-Type", "text/html; charset=utf-8");
+    // Extract path from url
     const index = request.url.indexOf("?");
     request.path = index === -1 ? request.url : request.url.slice(0, index);
   })
@@ -92,102 +95,98 @@ async function handler(request: FastifyRequest, reply: FastifyReply) {
   // Current request path
   const path = request.path;
 
-  // Execute route handlers for current request
-  for (const route of generateRoutes(path)) {
-    // Resolve module via cache
-    let module = modules.get(route);
+  try {
+    // Execute route handlers for current request
+    for (const route of generateRoutes(path)) {
+      // Resolve module via cache
+      let module = modules.get(route);
 
-    // Module was cached as not found?
-    if (module === null) {
-      continue;
-    }
-
-    // Module was not loaded yet?
-    if (module === undefined) {
-      try {
-        const modulePath = join(CWD, "dist", `routes${route}.js`);
-        if (NODE_ENV_IS_DEVELOPMENT) {
-          if (typeof require === "function") {
-            // Bun: Remove module from cache before importing
-            // as query parameter for import is ignored (see Node.js).
-            if (require.cache[modulePath]) {
-              delete require.cache[modulePath];
-            }
-            module = await import(`file://${modulePath}`);
-          } else {
-            // Node.js: Use timestamp as query parameter to update modules.
-            const mtime = (await stat(modulePath)).mtime.getTime();
-            module = await import(`file://${modulePath}?${mtime}`);
-          }
-        } else {
-          // Load and cache module for non-development
-          module = await import(`file://${modulePath}`);
-          modules.set(route, module);
-        }
-      } catch {
-        if (!NODE_ENV_IS_DEVELOPMENT) {
-          // Cache module as not found
-          modules.set(route, null);
-        }
+      // Module was cached as not found?
+      if (module === null) {
         continue;
-      } finally {
-        // Remove oldest entry from cache if limit is reached
-        if (
-          typeof JEASX_ROUTE_CACHE_LIMIT === "number" &&
-          modules.size > JEASX_ROUTE_CACHE_LIMIT
-        ) {
-          modules.delete(modules.keys().next().value);
+      }
+
+      // Module was not loaded yet?
+      if (module === undefined) {
+        try {
+          const modulePath = join(CWD, "dist", `routes${route}.js`);
+          if (NODE_ENV_IS_DEVELOPMENT) {
+            if (typeof require === "function") {
+              // Bun: Remove module from cache before importing
+              // as query parameter for import is ignored (see Node.js).
+              if (require.cache[modulePath]) {
+                delete require.cache[modulePath];
+              }
+              module = await import(`file://${modulePath}`);
+            } else {
+              // Node.js: Use timestamp as query parameter to update modules.
+              const mtime = (await stat(modulePath)).mtime.getTime();
+              module = await import(`file://${modulePath}?${mtime}`);
+            }
+          } else {
+            // Load and cache module for non-development
+            module = await import(`file://${modulePath}`);
+            modules.set(route, module);
+          }
+        } catch {
+          if (!NODE_ENV_IS_DEVELOPMENT) {
+            // Cache module as not found
+            modules.set(route, null);
+          }
+          continue;
+        } finally {
+          // Remove oldest entry from cache if limit is reached
+          if (
+            typeof JEASX_ROUTE_CACHE_LIMIT === "number" &&
+            modules.size > JEASX_ROUTE_CACHE_LIMIT
+          ) {
+            modules.delete(modules.keys().next().value);
+          }
         }
       }
+
+      // Store current route in request
+      request.route = route;
+
+      // Call the handler with request, reply and optional props
+      response = await module.default.call(context, {
+        request,
+        reply,
+        ...(typeof response === "object" ? response : {}),
+      });
+
+      if (reply.sent) {
+        return;
+      } else if (
+        typeof response === "string" ||
+        Buffer.isBuffer(response) ||
+        isJSX(response)
+      ) {
+        break;
+      } else if (
+        route.endsWith("/[...guard]") &&
+        (response === undefined || typeof response === "object")
+      ) {
+        continue;
+      } else if (route.endsWith("/[404]")) {
+        reply.status(404);
+        break;
+      } else if (reply.statusCode === 404) {
+        continue;
+      } else {
+        break;
+      }
     }
-
-    // Store current route in request
-    request.route = route;
-
-    // Call the handler with request, reply and optional props
-    response = await module.default.call(context, {
-      request,
-      reply,
-      ...(typeof response === "object" ? response : {}),
-    });
-
-    if (reply.sent) {
-      return;
-    } else if (
-      typeof response === "string" ||
-      Buffer.isBuffer(response) ||
-      isJSX(response)
-    ) {
-      break;
-    } else if (
-      route.endsWith("/[...guard]") &&
-      (response === undefined || typeof response === "object")
-    ) {
-      continue;
-    } else if (route.endsWith("/[404]")) {
-      reply.status(404);
-      break;
-    } else if (reply.statusCode === 404) {
-      continue;
+    return await renderJSX(response, context);
+  } catch (error) {
+    const errorHandler = context["errorHandler"];
+    if (typeof errorHandler === "function") {
+      response = await errorHandler(error, request, reply);
+      return await renderJSX(response, context);
     } else {
-      break;
+      throw error;
     }
   }
-
-  // Make sure a Content-Type header is set
-  if (!reply.hasHeader("Content-Type")) {
-    reply.header("Content-Type", "text/html; charset=utf-8");
-  }
-
-  const payload = isJSX(response)
-    ? await jsxToString.call(context, response)
-    : response;
-
-  // Post-process the payload with an optional response handler
-  const responseHandler = context["response"];
-  return typeof responseHandler === "function"
-    ? await responseHandler(payload)
-    : payload;
 }
 
 /**
@@ -251,4 +250,19 @@ function generateEdges(path: string): string[] {
  */
 function isJSX(obj: unknown): boolean {
   return !!obj && typeof obj === "object" && "type" in obj && "props" in obj;
+}
+
+/**
+ * Renders JSX to string and applies optional response handler.
+ */
+async function renderJSX(response: unknown, context: object) {
+  const payload = isJSX(response)
+    ? await jsxToString.call(context, response)
+    : response;
+
+  // Post-process the payload with an optional response handler
+  const responseHandler = context["responseHandler"];
+  return typeof responseHandler === "function"
+    ? await responseHandler(payload)
+    : payload;
 }
