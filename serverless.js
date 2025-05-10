@@ -52,9 +52,8 @@ const modules = /* @__PURE__ */ new Map();
 async function handler(request, reply) {
   let response;
   const context = {};
-  const path = request.path;
   try {
-    for (const route of generateRoutes(path)) {
+    for (const route of generateRoutes(request.path)) {
       let module = modules.get(route);
       if (module === null) {
         continue;

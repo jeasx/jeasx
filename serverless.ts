@@ -92,12 +92,9 @@ async function handler(request: FastifyRequest, reply: FastifyReply) {
   // Global context object for route handlers
   const context = {};
 
-  // Current request path
-  const path = request.path;
-
   try {
     // Execute route handlers for current request
-    for (const route of generateRoutes(path)) {
+    for (const route of generateRoutes(request.path)) {
       // Resolve module via cache
       let module = modules.get(route);
 
