@@ -111,7 +111,7 @@ async function handler(request, reply) {
   } catch (error) {
     const errorHandler = context["errorHandler"];
     if (typeof errorHandler === "function") {
-      response = await errorHandler(error, request, reply);
+      response = await errorHandler(error);
       return await renderJSX(response, context);
     } else {
       throw error;
