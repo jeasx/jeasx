@@ -178,6 +178,7 @@ async function handler(request: FastifyRequest, reply: FastifyReply) {
   } catch (error) {
     const errorHandler = context["errorHandler"];
     if (typeof errorHandler === "function") {
+      reply.status(500);
       response = await errorHandler(error);
       return await renderJSX(response, context);
     } else {
