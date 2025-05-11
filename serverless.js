@@ -107,13 +107,13 @@ async function handler(request, reply) {
         break;
       }
     }
-    return await renderJSX(response, context);
+    return await renderJSX(context, response);
   } catch (error) {
     const errorHandler = context["errorHandler"];
     if (typeof errorHandler === "function") {
       reply.status(500);
-      response = await errorHandler(error);
-      return await renderJSX(response, context);
+      response = await errorHandler.call(context, error);
+      return await renderJSX(context, response);
     } else {
       throw error;
     }
@@ -149,10 +149,10 @@ function generateEdges(path) {
 function isJSX(obj) {
   return !!obj && typeof obj === "object" && "type" in obj && "props" in obj;
 }
-async function renderJSX(response, context) {
+async function renderJSX(context, response) {
   const payload = isJSX(response) ? await jsxToString.call(context, response) : response;
   const responseHandler = context["responseHandler"];
-  return typeof responseHandler === "function" ? await responseHandler(payload) : payload;
+  return typeof responseHandler === "function" ? await responseHandler.call(context, payload) : payload;
 }
 export {
   serverless_default as default
