@@ -20,7 +20,11 @@ var serverless_default = Fastify({
   bodyLimit: Number(process.env.FASTIFY_BODY_LIMIT) || void 0,
   trustProxy: JSON.parse(process.env.FASTIFY_TRUST_PROXY || "false"),
   rewriteUrl: process.env.FASTIFY_REWRITE_URL && new Function(`return ${process.env.FASTIFY_REWRITE_URL}`)()
-}).register(fastifyCookie).register(fastifyFormbody).register(fastifyMultipart).register(fastifyStatic, {
+}).register(fastifyCookie).register(fastifyFormbody).register(fastifyMultipart, {
+  attachFieldsToBody: JSON.parse(
+    process.env.FASTIFY_MULTIPART_ATTACH_FIELDS_TO_BODY || '"keyValues"'
+  )
+}).register(fastifyStatic, {
   root: ["public", "dist/browser"].map((dir) => join(CWD, dir)),
   prefix: "/",
   wildcard: false,

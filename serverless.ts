@@ -42,7 +42,11 @@ export default Fastify({
 })
   .register(fastifyCookie)
   .register(fastifyFormbody)
-  .register(fastifyMultipart)
+  .register(fastifyMultipart, {
+    attachFieldsToBody: JSON.parse(
+      process.env.FASTIFY_MULTIPART_ATTACH_FIELDS_TO_BODY || '"keyValues"'
+    ),
+  })
   .register(fastifyStatic, {
     root: ["public", "dist/browser"].map((dir) => join(CWD, dir)),
     prefix: "/",
