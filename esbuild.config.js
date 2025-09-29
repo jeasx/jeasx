@@ -17,14 +17,12 @@ const BROWSER_PUBLIC_ENV = Object.keys(process.env)
 
 const ESBUILD_BROWSER_TARGET = process.env.ESBUILD_BROWSER_TARGET
   ? process.env.ESBUILD_BROWSER_TARGET.replace(/\s/g, "").split(",")
-  : ["chrome126", "edge126", "firefox128", "safari17"];
+  : ["chrome130", "edge130", "firefox130", "safari18"];
 
 /** @type esbuild.BuildOptions[] */
 const buildOptions = [
   {
-    entryPoints: ["js", "ts", "jsx", "tsx"].map(
-      (ext) => `src/routes/**/[*].${ext}`
-    ),
+    entryPoints: ["js", "ts", "jsx", "tsx"].map((ext) => `src/**/[*].${ext}`),
     define: {
       "process.env.BUILD_TIME": BUILD_TIME,
     },
@@ -37,14 +35,13 @@ const buildOptions = [
     bundle: true,
     sourcemap: process.sourceMapsEnabled,
     sourcesContent: false,
-    outbase: "src",
-    outdir: "dist",
+    outdir: "dist/routes",
     platform: "neutral",
     packages: "external",
   },
   {
     entryPoints: ["js", "ts", "jsx", "tsx", "css"].map(
-      (ext) => `src/browser/**/index.${ext}`
+      (ext) => `src/**/index.${ext}`
     ),
     define: BROWSER_PUBLIC_ENV,
     minify: process.env.NODE_ENV !== "development",
@@ -56,7 +53,6 @@ const buildOptions = [
     bundle: true,
     sourcemap: process.sourceMapsEnabled,
     sourcesContent: true,
-    outbase: "src/browser",
     outdir: "dist/browser",
     platform: "browser",
     format: "esm",
