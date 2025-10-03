@@ -35,7 +35,7 @@ const buildOptions = [
     bundle: true,
     sourcemap: process.sourceMapsEnabled,
     sourcesContent: false,
-    outdir: "dist/routes",
+    outdir: "dist/server",
     platform: "neutral",
     packages: "external",
   },

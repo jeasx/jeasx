@@ -64,7 +64,7 @@ async function handler(request, reply) {
       }
       if (module === void 0) {
         try {
-          const modulePath = join(CWD, "dist", `routes${route}.js`);
+          const modulePath = join(CWD, "dist", `server${route}.js`);
           if (NODE_ENV_IS_DEVELOPMENT) {
             if (typeof require === "function") {
               if (require.cache[modulePath]) {
