@@ -98,13 +98,13 @@ async function handler(request, reply) {
       });
       if (reply.sent) {
         return;
+      } else if (route.endsWith("/[404]")) {
+        reply.status(404);
+        break;
       } else if (typeof response === "string" || Buffer.isBuffer(response) || isJSX(response)) {
         break;
       } else if (route.endsWith("/[...guard]") && (response === void 0 || typeof response === "object")) {
         continue;
-      } else if (route.endsWith("/[404]")) {
-        reply.status(404);
-        break;
       } else if (reply.statusCode === 404) {
         continue;
       } else {
