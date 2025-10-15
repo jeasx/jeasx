@@ -1,5 +1,11 @@
 # Changelog
 
+## 2025-10-15 - Jeasx 2.0.1 released
+
+This releases fixes status codes for fallback 404 routes. Due to an unnoticed bug introduced by a minor refactoring, 404-routes were delivered with `status=200`, now it is the correct `status=404` again. This might impact your SEO score, so an update is highly recommended.
+
+Dependency updates: `esbuild@0.25.11`
+
 ## 2025-10-12 - Jeasx 2.0.0 released
 
 🎉 Approximately one year after the release of Jeasx 1.0 I'm proud to announce the release of Jeasx 2.0.
