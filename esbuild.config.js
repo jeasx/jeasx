@@ -1,7 +1,7 @@
 import * as esbuild from "esbuild";
 import env from "./env.js";
 
-env();
+await env();
 
 const BUILD_TIME = `"${Date.now().toString(36)}"`;
 

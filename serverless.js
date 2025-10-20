@@ -7,7 +7,7 @@ import { jsxToString } from "jsx-async-runtime";
 import { stat } from "node:fs/promises";
 import { join } from "node:path";
 import env from "./env.js";
-env();
+await env();
 const NODE_ENV_IS_DEVELOPMENT = process.env.NODE_ENV === "development";
 const CWD = process.cwd();
 const FASTIFY_STATIC_HEADERS = process.env.FASTIFY_STATIC_HEADERS && JSON.parse(process.env.FASTIFY_STATIC_HEADERS);
