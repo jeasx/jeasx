@@ -1,8 +1,16 @@
 # Changelog
 
+## 2025-10-28 - Jeasx 2.1.0 released
+
+🎉 Environment vars can now be loaded from a JavaScript file (`.env.js`) additionally to existing .env-files. This allows enhanced environment setups depending on your workflows.
+
+Node 24 (LTS) is the official default runtime from now on.
+
+Dependency updates: `@fastify/multipart@9.3.0`, `@fastify/static@8.3.0`, `@types/node@24.9.1`
+
 ## 2025-10-15 - Jeasx 2.0.1 released
 
-This releases fixes status codes for fallback 404 routes. Due to an unnoticed bug introduced by a minor refactoring, 404-routes were delivered with `status=200`, now it is the correct `status=404` again. This might impact your SEO score, so an update is highly recommended.
+🎉 This releases fixes status codes for fallback 404 routes. Due to an unnoticed bug introduced by a minor refactoring, 404-routes were delivered with `status=200`, now it is the correct `status=404` again. This might impact your SEO score, so an update is highly recommended.
 
 Dependency updates: `esbuild@0.25.11`
 
