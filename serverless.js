@@ -29,6 +29,7 @@ var serverless_default = Fastify({
   prefix: "/",
   wildcard: false,
   cacheControl: false,
+  preCompressed: true,
   setHeaders: FASTIFY_STATIC_HEADERS ? (reply, path) => {
     for (const [suffix, headers] of Object.entries(
       FASTIFY_STATIC_HEADERS
