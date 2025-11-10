@@ -1,5 +1,32 @@
 # Changelog
 
+## 2025-11-10 - Jeasx 2.1.1 released
+
+🎉 Enhanced configuration for @fastify/static, so you can serve pre-compressed static files (see <https://github.com/fastify/fastify-static?tab=readme-ov-file#precompressed>) from `public` and `dist/browser`. Just run `gzip -rk public dist/browser` as post build for gzipping your static assets. This might be useful if you don't want to run a reverse proxy in front of your Jeasx application and serve compressed files nevertheless. Setting up compression for dynamic content can be wired up in userland via a root guard:
+
+```js
+import { promisify } from "node:util";
+import { gzip } from "node:zlib";
+
+export default function ({ request, reply }) {
+  this.responseHandler = (payload) => {
+    if (
+      typeof payload === "string" &&
+      request.headers["accept-encoding"]?.includes("gzip")
+    ) {
+      reply.header("content-encoding", "gzip");
+      return promisify(gzip)(payload);
+    } else {
+      return payload;
+    }
+  };
+}
+```
+
+Updated `moduleResolution` to `bundler` in `tsconfig.json`.
+
+Dependency updates: `jsx-async-runtime@2.0.1`, `fastify@5.6.2`, `esbuild@0.27.0`, `@types/node@24.9.2`
+
 ## 2025-10-28 - Jeasx 2.1.0 released
 
 🎉 Environment vars can now be loaded from a JavaScript file (`.env.js`) additionally to existing .env-files. This allows enhanced environment setups depending on your workflows.
