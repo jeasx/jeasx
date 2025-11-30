@@ -1,25 +1,23 @@
-import fastifyCookie from "@fastify/cookie";
-import fastifyFormbody from "@fastify/formbody";
-import fastifyMultipart from "@fastify/multipart";
-import fastifyStatic from "@fastify/static";
-import Fastify, { FastifyReply, FastifyRequest } from "fastify";
+import fastifyCookie, { FastifyCookieOptions } from "@fastify/cookie";
+import fastifyFormbody, { FastifyFormbodyOptions } from "@fastify/formbody";
+import fastifyMultipart, { FastifyMultipartOptions } from "@fastify/multipart";
+import fastifyStatic, { FastifyStaticOptions } from "@fastify/static";
+import Fastify, {
+  FastifyReply,
+  FastifyRequest,
+  FastifyServerOptions,
+} from "fastify";
 import { jsxToString } from "jsx-async-runtime";
 import { stat } from "node:fs/promises";
+import { totalmem } from "node:os";
 import { join } from "node:path";
 import env from "./env.js";
 
 await env();
 
-const NODE_ENV_IS_DEVELOPMENT = process.env.NODE_ENV === "development";
 const CWD = process.cwd();
-
-const FASTIFY_STATIC_HEADERS =
-  process.env.FASTIFY_STATIC_HEADERS &&
-  JSON.parse(process.env.FASTIFY_STATIC_HEADERS);
-
-const JEASX_ROUTE_CACHE_LIMIT =
-  process.env.JEASX_ROUTE_CACHE_LIMIT &&
-  JSON.parse(process.env.JEASX_ROUTE_CACHE_LIMIT);
+const NODE_ENV_IS_DEVELOPMENT = process.env.NODE_ENV === "development";
+const JEASX_ROUTE_CACHE_LIMIT = totalmem() / 1024 / 1024;
 
 declare module "fastify" {
   interface FastifyRequest {
@@ -31,41 +29,34 @@ declare module "fastify" {
 // Create and export a Fastify app instance
 export default Fastify({
   logger: true,
-  disableRequestLogging: JSON.parse(
-    process.env.FASTIFY_DISABLE_REQUEST_LOGGING || "false"
-  ),
-  bodyLimit: Number(process.env.FASTIFY_BODY_LIMIT) || undefined,
-  trustProxy: JSON.parse(process.env.FASTIFY_TRUST_PROXY || "false"),
-  rewriteUrl:
-    process.env.FASTIFY_REWRITE_URL &&
-    new Function(`return ${process.env.FASTIFY_REWRITE_URL}`)(),
+  ...(jsonToOptions(
+    process.env.FASTIFY_SERVER_OPTIONS
+  ) as FastifyServerOptions),
 })
-  .register(fastifyCookie)
-  .register(fastifyFormbody)
+  .register(fastifyCookie, {
+    ...(jsonToOptions(
+      process.env.FASTIFY_COOKIE_OPTIONS
+    ) as FastifyCookieOptions),
+  })
+  .register(fastifyFormbody, {
+    ...(jsonToOptions(
+      process.env.FASTIFY_FORMBODY_OPTIONS
+    ) as FastifyFormbodyOptions),
+  })
   .register(fastifyMultipart, {
-    attachFieldsToBody: JSON.parse(
-      process.env.FASTIFY_MULTIPART_ATTACH_FIELDS_TO_BODY || '"keyValues"'
-    ),
+    attachFieldsToBody: "keyValues",
+    ...(jsonToOptions(
+      process.env.FASTIFY_MULTIPART_OPTIONS
+    ) as FastifyMultipartOptions),
   })
   .register(fastifyStatic, {
     root: ["public", "dist/browser"].map((dir) => join(CWD, dir)),
     prefix: "/",
     wildcard: false,
-    cacheControl: false,
     preCompressed: true,
-    setHeaders: FASTIFY_STATIC_HEADERS
-      ? (reply, path) => {
-          for (const [suffix, headers] of Object.entries(
-            FASTIFY_STATIC_HEADERS
-          )) {
-            if (path.endsWith(suffix)) {
-              for (const [key, value] of Object.entries(headers)) {
-                reply.setHeader(key, value);
-              }
-            }
-          }
-        }
-      : undefined,
+    ...(jsonToOptions(
+      process.env.FASTIFY_STATIC_OPTIONS
+    ) as FastifyStaticOptions),
   })
   .decorateRequest("route", "")
   .decorateRequest("path", "")
@@ -84,6 +75,23 @@ export default Fastify({
       throw error;
     }
   });
+
+/**
+ * Parses JSON and instantiates all stringified functions.
+ */
+function jsonToOptions(json: string) {
+  const options = JSON.parse(json || "{}");
+  for (const key in options) {
+    if (typeof options[key] === "string" && options[key].includes("=>")) {
+      try {
+        options[key] = new Function(`return ${options[key]}`)();
+      } catch (error) {
+        console.warn("⚠️", error);
+      }
+    }
+  }
+  return options;
+}
 
 // Cache for resolved route modules, 'null' means no module exists.
 const modules = new Map<string, { default: Function }>();
@@ -138,10 +146,7 @@ async function handler(request: FastifyRequest, reply: FastifyReply) {
           continue;
         } finally {
           // Remove oldest entry from cache if limit is reached
-          if (
-            typeof JEASX_ROUTE_CACHE_LIMIT === "number" &&
-            modules.size > JEASX_ROUTE_CACHE_LIMIT
-          ) {
+          if (modules.size > JEASX_ROUTE_CACHE_LIMIT) {
             modules.delete(modules.keys().next().value);
           }
         }
