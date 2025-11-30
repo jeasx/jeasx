@@ -30,23 +30,29 @@ export default async function env() {
   }
   try {
     const envFile = `file://${join(process.cwd(), ".env.js")}`;
-    const envObject = (await import(envFile)).default;
-    Object.entries(envObject).forEach(([key, value]) => {
-      if (!(key in process.env)) {
-        switch (typeof value) {
-          case "string":
-            process.env[key] = value;
-            break;
-          case "function":
-            process.env[key] = value.toString();
-            break;
-          default:
-            process.env[key] = JSON.stringify(value);
-            break;
-        }
-      }
-    });
+    const envObject = stringifyFunctions((await import(envFile)).default);
+    Object.entries(envObject)
+      .filter(([key]) => !(key in process.env))
+      .forEach(([key, value]) => {
+        process.env[key] =
+          typeof value === "string" ? value : JSON.stringify(value);
+      });
   } catch (e) {
     // ERR_MODULE_NOT_FOUND
   }
+}
+
+/**
+ * Convert all functions recursively to strings.
+ */
+function stringifyFunctions(obj) {
+  for (const key in obj) {
+    if (typeof obj[key] === "function") {
+      obj[key] = obj[key].toString();
+    }
+    if (typeof obj[key] === "object" && obj[key] !== null) {
+      stringifyFunctions(obj[key]);
+    }
+  }
+  return obj;
 }
