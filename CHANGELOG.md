@@ -9,10 +9,10 @@
 To configure Fastify (or a specific plugin), you can now use simple JSON objects which mirror the corresponding Fastify options. Have a look at the linked Fastify documentation for a reference of all existing options:
 
 - [`FASTIFY_SERVER_OPTIONS`](<https://fastify.dev/docs/latest/Reference/Server/>)
-- [`FASTIFY_COOKIE_OPTIONS`](<https://github.com/fastify/fastify-cookie>)
-- [`FASTIFY_FORMBODY_OPTIONS`](<https://github.com/fastify/fastify-formbody>)
-- [`FASTIFY_MULTIPART_OPTIONS`](<https://github.com/fastify/fastify-multipart>)
-- [`FASTIFY_STATIC_OPTIONS`](<https://github.com/fastify/fastify-static>)
+- [`FASTIFY_COOKIE_OPTIONS`](<https://github.com/fastify/fastify-cookie#options>)
+- [`FASTIFY_FORMBODY_OPTIONS`](<https://github.com/fastify/fastify-formbody#options>)
+- [`FASTIFY_MULTIPART_OPTIONS`](<https://github.com/fastify/fastify-multipart#options>)
+- [`FASTIFY_STATIC_OPTIONS`](<https://github.com/fastify/fastify-static#options>)
 
 To optimise the developer experience, it is highly recommended that you use the recently introduced `.env.js` file to provide these configuration options. Alternatively, you can also provide them via `.env` or your process environment. Jeasx comes with a minimal set of reasonable [Fastify defaults](https://github.com/jeasx/jeasx/blob/main/serverless.ts), but you can also overwrite them if necessary.
 
@@ -47,7 +47,7 @@ export default {
 };
 ```
 
-Another improvement has been made by introducing an automatic approach to determing the maximum size of the internal route cache. Depending on the amount of free memory available at startup, the maximum number of cache entries is calculated. This approach strikes a balance, ensuring the cache is large enough for large-scale projects while keeping maximum memory consumption within reasonable limits given the available resources. This means that you no longer need to worry about providing ~~`JEASX_ROUTE_CACHE_LIMIT`~~ via the environment.
+Another improvement has been made by introducing an automatic approach to determine the maximum size of the internal route cache. Depending on the amount of free memory available at startup, the maximum number of cache entries is calculated. This approach strikes a balance, ensuring the cache is large enough for large-scale projects while keeping maximum memory consumption within reasonable limits given the available resources. This means that you no longer need to worry about providing ~~`JEASX_ROUTE_CACHE_LIMIT`~~ via the environment.
 
 Dependency updates: `@types/node@24.10.1`
 
