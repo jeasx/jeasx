@@ -1,5 +1,56 @@
 # Changelog
 
+## 2025-12-01 - Jeasx 2.2.0 released
+
+🎉 This release introduces a more flexible configuration approach for the underlying Fastify server. You can now customize all Fastify options (including those for all used plugins) according to your needs, without having to use the formerly fixed and very restrictive set of environment variables. This change was made to eliminate the need for increasingly specific environment variables to customise the default behaviour of Jeasx.
+
+**Breaking change**: The previously supported environment variables (~~`FASTIFY_​BODY_​LIMIT, FASTIFY_​DISABLE_​REQUEST_​LOGGING, FASTIFY_​REWRITE_​URL, FASTIFY_​STATIC_​HEADERS, FASTIFY_​TRUST_​PROXY, FASTIFY_​MULTIPART_​ATTACH_​FIELDS_​TO_​BODY`~~) have been completely removed. While this may seem inconvenient for a minor release, the process of migrating your setup to the new configuration approach usually takes less than a minute. This streamlines the code base and documentation, as these features are presumably seldom used.
+
+To configure Fastify (or a specific plugin), you can now use simple JSON objects which mirror the corresponding Fastify options. Have a look at the linked Fastify documentation for a reference of all existing options:
+
+- [`FASTIFY_SERVER_OPTIONS`](<https://fastify.dev/docs/latest/Reference/Server/>)
+- [`FASTIFY_COOKIE_OPTIONS`](<https://github.com/fastify/fastify-cookie>)
+- [`FASTIFY_FORMBODY_OPTIONS`](<https://github.com/fastify/fastify-formbody>)
+- [`FASTIFY_MULTIPART_OPTIONS`](<https://github.com/fastify/fastify-multipart>)
+- [`FASTIFY_STATIC_OPTIONS`](<https://github.com/fastify/fastify-static>)
+
+To optimise the developer experience, it is highly recommended that you use the recently introduced `.env.js` file to provide these configuration options. Alternatively, you can also provide them via `.env` or your process environment. Jeasx comes with a minimal set of reasonable [Fastify defaults](https://github.com/jeasx/jeasx/blob/main/serverless.ts), but you can also overwrite them if necessary.
+
+Some Fastify options, such as `rewriteUrl` or `setHeaders`, take a function as a parameter. Jeasx supports this use case by deserialising the stringified function code when the server starts up.
+
+### Example configuration
+
+```js
+const NODE_ENV_IS_DEVELOPMENT = process.env.NODE_ENV === "development";
+
+export default {
+  /** @type import("fastify").FastifyServerOptions */
+  FASTIFY_SERVER_OPTIONS: {
+    disableRequestLogging: NODE_ENV_IS_DEVELOPMENT,
+    bodyLimit: 2 * 1024 * 1024,
+    rewriteUrl: (req) => String(req.url).replace(/^\/jeasx/, ""),
+  },
+
+  /** @type import("@fastify/static").FastifyStaticOptions */
+  FASTIFY_STATIC_OPTIONS: {
+    maxAge: NODE_ENV_IS_DEVELOPMENT ? 0 : "365d",
+  },
+
+  /** @type import("@fastify/cookie").FastifyCookieOptions */
+  // FASTIFY_COOKIE_OPTIONS: {},
+
+  /** @type import("@fastify/formbody").FastifyFormbodyOptions */
+  // FASTIFY_FORMBODY_OPTIONS: {},
+
+  /** @type import("@fastify/multipart").FastifyMultipartOptions */
+  // FASTIFY_MULTIPART_OPTIONS: {},
+};
+```
+
+Another improvement has been made by introducing an automatic approach to determing the maximum size of the internal route cache. Depending on the amount of free memory available at startup, the maximum number of cache entries is calculated. This approach strikes a balance, ensuring the cache is large enough for large-scale projects while keeping maximum memory consumption within reasonable limits given the available resources. This means that you no longer need to worry about providing ~~`JEASX_ROUTE_CACHE_LIMIT`~~ via the environment.
+
+Dependency updates: `@types/node@24.10.1`
+
 ## 2025-11-10 - Jeasx 2.1.1 released
 
 🎉 Enhanced configuration for @fastify/static, so you can serve pre-compressed static files (see <https://github.com/fastify/fastify-static?tab=readme-ov-file#precompressed>) from `public` and `dist/browser`. Just run `gzip -rk public dist/browser` as post build for gzipping your static assets. This might be useful if you don't want to run a reverse proxy in front of your Jeasx application and serve compressed files nevertheless. Setting up compression for dynamic content can be wired up in userland via a root guard:
