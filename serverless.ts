@@ -119,7 +119,7 @@ async function handler(request: FastifyRequest, reply: FastifyReply) {
       // Module was not loaded yet?
       if (module === undefined) {
         try {
-          const modulePath = join(CWD, "dist", `server${route}.js`);
+          const modulePath = join(CWD, "dist", "server", `${route}.js`);
           if (NODE_ENV_IS_DEVELOPMENT) {
             if (typeof require === "function") {
               // Bun: Remove module from cache before importing
