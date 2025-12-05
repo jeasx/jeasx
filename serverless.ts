@@ -50,7 +50,7 @@ export default Fastify({
     ) as FastifyMultipartOptions),
   })
   .register(fastifyStatic, {
-    root: ["public", "dist/browser"].map((dir) => join(CWD, dir)),
+    root: [["public"], ["dist", "browser"]].map((dir) => join(CWD, ...dir)),
     prefix: "/",
     wildcard: false,
     preCompressed: true,

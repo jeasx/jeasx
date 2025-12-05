@@ -31,7 +31,7 @@ var serverless_default = Fastify({
     process.env.FASTIFY_MULTIPART_OPTIONS
   )
 }).register(fastifyStatic, {
-  root: ["public", "dist/browser"].map((dir) => join(CWD, dir)),
+  root: [["public"], ["dist", "browser"]].map((dir) => join(CWD, ...dir)),
   prefix: "/",
   wildcard: false,
   preCompressed: true,
