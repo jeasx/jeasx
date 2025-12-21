@@ -1,5 +1,11 @@
 # Changelog
 
+## 2025-12-21 - Jeasx 2.2.1 released
+
+🎉 Just a patch release with a minor cleanup for explicit path joins in `serverless.ts`.
+
+Dependency updates: `esbuild@0.27.2`, `jsx-async-runtime@2.0.2`, `@types/node@24.10.4`
+
 ## 2025-12-01 - Jeasx 2.2.0 released
 
 🎉 This release introduces a more flexible configuration approach for the underlying Fastify server. You can now customize all Fastify options (including those for all used plugins) according to your needs, without having to use the formerly fixed and very restrictive set of environment variables. This change was made to eliminate the need for increasingly specific environment variables to customise the default behaviour of Jeasx.
