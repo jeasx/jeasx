@@ -163,7 +163,11 @@ async function handler(request: FastifyRequest, reply: FastifyReply) {
       if (reply.sent) {
         return;
       } else if (route.endsWith("/[404]")) {
-        reply.status(404);
+        // Preserve existing status if a 404 page is requested directly.
+        // If no status is defined, set status to 404 automatically.
+        if (reply.statusCode === 200 && !request.path.endsWith("/404")) {
+          reply.status(404);
+        }
         break;
       } else if (
         typeof response === "string" ||

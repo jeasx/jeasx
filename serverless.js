@@ -108,7 +108,9 @@ async function handler(request, reply) {
       if (reply.sent) {
         return;
       } else if (route.endsWith("/[404]")) {
-        reply.status(404);
+        if (reply.statusCode === 200 && !request.path.endsWith("/404")) {
+          reply.status(404);
+        }
         break;
       } else if (typeof response === "string" || Buffer.isBuffer(response) || isJSX(response)) {
         break;
