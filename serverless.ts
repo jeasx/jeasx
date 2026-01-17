@@ -5,7 +5,7 @@ import fastifyStatic, { FastifyStaticOptions } from "@fastify/static";
 import Fastify, {
   FastifyReply,
   FastifyRequest,
-  FastifyServerOptions,
+  FastifyServerOptions
 } from "fastify";
 import { jsxToString } from "jsx-async-runtime";
 import { stat } from "node:fs/promises";
@@ -29,25 +29,23 @@ declare module "fastify" {
 // Create and export a Fastify app instance
 export default Fastify({
   logger: true,
-  ...(jsonToOptions(
-    process.env.FASTIFY_SERVER_OPTIONS
-  ) as FastifyServerOptions),
+  ...(jsonToOptions(process.env.FASTIFY_SERVER_OPTIONS) as FastifyServerOptions)
 })
   .register(fastifyCookie, {
     ...(jsonToOptions(
       process.env.FASTIFY_COOKIE_OPTIONS
-    ) as FastifyCookieOptions),
+    ) as FastifyCookieOptions)
   })
   .register(fastifyFormbody, {
     ...(jsonToOptions(
       process.env.FASTIFY_FORMBODY_OPTIONS
-    ) as FastifyFormbodyOptions),
+    ) as FastifyFormbodyOptions)
   })
   .register(fastifyMultipart, {
     attachFieldsToBody: "keyValues",
     ...(jsonToOptions(
       process.env.FASTIFY_MULTIPART_OPTIONS
-    ) as FastifyMultipartOptions),
+    ) as FastifyMultipartOptions)
   })
   .register(fastifyStatic, {
     root: [["public"], ["dist", "browser"]].map((dir) => join(CWD, ...dir)),
@@ -56,7 +54,7 @@ export default Fastify({
     preCompressed: true,
     ...(jsonToOptions(
       process.env.FASTIFY_STATIC_OPTIONS
-    ) as FastifyStaticOptions),
+    ) as FastifyStaticOptions)
   })
   .decorateRequest("route", "")
   .decorateRequest("path", "")
@@ -159,7 +157,7 @@ async function handler(request: FastifyRequest, reply: FastifyReply) {
       response = await module.default.call(context, {
         request,
         reply,
-        ...(typeof response === "object" ? response : {}),
+        ...(typeof response === "object" ? response : {})
       });
 
       if (reply.sent) {
@@ -213,7 +211,7 @@ function generateRoutes(path: string): string[] {
       .map((segment) => `${segment}/[...guard]`),
     ...edges.map((edge) => `${edge}`),
     ...segments.map((segment) => `${segment}/[...path]`),
-    ...segments.map((segment) => `${segment}/[404]`),
+    ...segments.map((segment) => `${segment}/[404]`)
   ];
 }
 
@@ -264,13 +262,12 @@ function isJSX(obj: unknown): boolean {
  * Renders JSX to string and applies optional response handler.
  */
 async function renderJSX(context: object, response: unknown) {
-  const payload = isJSX(response)
-    ? await jsxToString.call(context, response)
-    : response;
+  const payload =
+    isJSX(response) ? await jsxToString.call(context, response) : response;
 
   // Post-process the payload with an optional response handler
   const responseHandler = context["responseHandler"];
-  return typeof responseHandler === "function"
-    ? await responseHandler.call(context, payload)
+  return typeof responseHandler === "function" ?
+      await responseHandler.call(context, payload)
     : payload;
 }

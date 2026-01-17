@@ -14,9 +14,7 @@ const NODE_ENV_IS_DEVELOPMENT = process.env.NODE_ENV === "development";
 const JEASX_ROUTE_CACHE_LIMIT = Math.floor(freemem() / 1024 / 1024);
 var serverless_default = Fastify({
   logger: true,
-  ...jsonToOptions(
-    process.env.FASTIFY_SERVER_OPTIONS
-  )
+  ...jsonToOptions(process.env.FASTIFY_SERVER_OPTIONS)
 }).register(fastifyCookie, {
   ...jsonToOptions(
     process.env.FASTIFY_COOKIE_OPTIONS
