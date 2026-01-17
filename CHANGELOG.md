@@ -2,9 +2,9 @@
 
 ## 2026-01-17 - Jeasx 2.2.2 released
 
-🎉 This release now preserves the original status code when a 404 page is accessed directly (defaults to 200). This improvement makes it easier to use Jeasx as a static site generator and to fetch the 404 page with common tools for saving it to a file system. While Jeasx is fundamentally a server-side rendering framework, there are valid use cases where serving a static page alone is sufficient.
+🎉 This release now preserves the original status code when a 404 page is accessed directly (defaults to 200). This improvement makes it easier to use Jeasx as a static site generator and to fetch the 404 page with common tools for saving it to a file system.
 
-For example, you can use `wget` to download a Jeasx website to a www-directory with just a single line:
+While Jeasx is fundamentally a server-side rendering framework, there are valid use cases where serving a static page alone is sufficient. For example, you can use `wget` to download a Jeasx website to a www-directory with just a single line:
 
 ```bash
 wget --mirror --page-requisites --no-host-directories --directory-prefix=www http://localhost:3000 http://localhost:3000/404
