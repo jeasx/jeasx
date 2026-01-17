@@ -2,7 +2,7 @@
 
 ## 2026-01-17 - Jeasx 2.2.2 released
 
-🎉 This release now preserves the original status code when a 404 page is accessed directly (previously defaulted to 200). This improvement makes it easier to use Jeasx as a static site generator and to fetch the 404 page with common tools for saving it to a file system. While Jeasx is fundamentally a server-side rendering framework, there are valid use cases where serving a static page alone is sufficient.
+🎉 This release now preserves the original status code when a 404 page is accessed directly (defaults to 200). This improvement makes it easier to use Jeasx as a static site generator and to fetch the 404 page with common tools for saving it to a file system. While Jeasx is fundamentally a server-side rendering framework, there are valid use cases where serving a static page alone is sufficient.
 
 For example, you can use `wget` to download a Jeasx website to a www-directory with just a single line:
 
@@ -11,6 +11,8 @@ wget --mirror --page-requisites --no-host-directories --directory-prefix=www htt
 ```
 
 Have a look at the [Dockerfile](https://github.com/jeasx/jeasx-website/blob/main/Dockerfile) of the Jeasx website to see how things can be wired up for serving a static export with Caddy as web server.
+
+If you want to restore the old behaviour (directly calling /404 resulting in status code 404), you can simple add `reply.status(404)` to your `/[404]` handler.
 
 Dependency updates: `fastify@5.7.1`, `@fastify/static@9.0.0`, `@types/node@24.10.9`
 
