@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-01-17 - Jeasx 2.2.2 released
+
+🎉 This release now preserves the original status code when a 404 page is accessed directly (previously defaulted to 200). This improvement makes it easier to use Jeasx as a static site generator and to fetch the 404 page with common tools for saving it to a file system. While Jeasx is fundamentally a server-side rendering framework, there are valid use cases where serving a static page alone is sufficient.
+
+For example, you can use `wget` to download a Jeasx website to a www-directory with just a single line:
+
+```bash
+wget --mirror --page-requisites --no-host-directories --directory-prefix=www http://localhost:3000 http://localhost:3000/404
+```
+
+Have a look at the [Dockerfile](https://github.com/jeasx/jeasx-website/blob/main/Dockerfile) of the Jeasx website to see how things can be wired up for serving a static export with Caddy as web server.
+
+Dependency updates: `fastify@5.7.1`, `@fastify/static@9.0.0`, `@types/node@24.10.9`
+
 ## 2025-12-21 - Jeasx 2.2.1 released
 
 🎉 Just a patch release with a minor cleanup for explicit path joins in `serverless.ts`.
@@ -14,11 +28,11 @@ Dependency updates: `esbuild@0.27.2`, `jsx-async-runtime@2.0.2`, `@types/node@24
 
 To configure Fastify (or a specific plugin), you can now use simple JSON objects which mirror the corresponding Fastify options. Have a look at the linked Fastify documentation for a reference of all existing options:
 
-- [`FASTIFY_SERVER_OPTIONS`](<https://fastify.dev/docs/latest/Reference/Server/>)
-- [`FASTIFY_COOKIE_OPTIONS`](<https://github.com/fastify/fastify-cookie#options>)
-- [`FASTIFY_FORMBODY_OPTIONS`](<https://github.com/fastify/fastify-formbody#options>)
-- [`FASTIFY_MULTIPART_OPTIONS`](<https://github.com/fastify/fastify-multipart#options>)
-- [`FASTIFY_STATIC_OPTIONS`](<https://github.com/fastify/fastify-static#options>)
+- [`FASTIFY_SERVER_OPTIONS`](https://fastify.dev/docs/latest/Reference/Server/)
+- [`FASTIFY_COOKIE_OPTIONS`](https://github.com/fastify/fastify-cookie#options)
+- [`FASTIFY_FORMBODY_OPTIONS`](https://github.com/fastify/fastify-formbody#options)
+- [`FASTIFY_MULTIPART_OPTIONS`](https://github.com/fastify/fastify-multipart#options)
+- [`FASTIFY_STATIC_OPTIONS`](https://github.com/fastify/fastify-static#options)
 
 To optimise the developer experience, it is highly recommended that you use the recently introduced `.env.js` file to provide these configuration options. Alternatively, you can also provide them via `.env` or your process environment. Jeasx comes with a minimal set of reasonable [Fastify defaults](https://github.com/jeasx/jeasx/blob/main/serverless.ts), but you can also overwrite them if necessary.
 
@@ -329,7 +343,7 @@ Added two new environment variables (`FASTIFY_DISABLE_REQUEST_LOGGING` and `FAST
 
 ## 2024-12-01 - Jeasx 1.1.0 released
 
-🎉 Migrated from dotenv to dotenv-flow, so you can use NODE_ENV-specific .env* files (like `.env.development`) to configure different environments for production and development. This is useful to disable caching headers (e.g. via `FASTIFY_STATIC_HEADERS`) in development, as Jeasx applies `FASTIFY_STATIC_HEADERS` in development from now on for a more consistent developer expierence. See updated .env-files in the quickstart-project for an example how to disable caching in development. This is only needed if you have configured `FASTIFY_STATIC_HEADERS` for your existing projects.
+🎉 Migrated from dotenv to dotenv-flow, so you can use NODE_ENV-specific .env\* files (like `.env.development`) to configure different environments for production and development. This is useful to disable caching headers (e.g. via `FASTIFY_STATIC_HEADERS`) in development, as Jeasx applies `FASTIFY_STATIC_HEADERS` in development from now on for a more consistent developer expierence. See updated .env-files in the quickstart-project for an example how to disable caching in development. This is only needed if you have configured `FASTIFY_STATIC_HEADERS` for your existing projects.
 
 Bumped default environment variable `ESBUILD_BROWSER_TARGET` to more recent browser versions (e.g. `chrome126, edge126, firefox128, safari17`). If you want to stick with older versions, you can override it via the environment. Learn more about possible values at the esbuild website.
 
