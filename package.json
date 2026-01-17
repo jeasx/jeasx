@@ -28,9 +28,9 @@
     "@fastify/formbody": "8.0.2",
     "@fastify/multipart": "9.3.0",
     "@fastify/static": "9.0.0",
-    "@types/node": "24.10.8",
+    "@types/node": "24.10.9",
     "esbuild": "0.27.2",
-    "fastify": "5.7.0",
+    "fastify": "5.7.1",
     "jsx-async-runtime": "2.0.2"
   },
   "scripts": {
