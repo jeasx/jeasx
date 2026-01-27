@@ -18,41 +18,32 @@ import { join } from "node:path";
 export default async function env() {
   if (process.loadEnvFile) {
     [
-      ...(process.env.NODE_ENV
-        ? [`.env.${process.env.NODE_ENV}.local`, `.env.${process.env.NODE_ENV}`]
-        : []),
+      ...(process.env.NODE_ENV ?
+        [`.env.${process.env.NODE_ENV}.local`, `.env.${process.env.NODE_ENV}`]
+      : []),
       ".env.local",
       ".env",
-      ".env.defaults",
+      ".env.defaults"
     ]
       .filter(existsSync)
       .forEach(process.loadEnvFile);
   }
   try {
     const envFile = `file://${join(process.cwd(), ".env.js")}`;
-    const envObject = stringifyFunctions((await import(envFile)).default);
+    const envObject = (await import(envFile)).default;
     Object.entries(envObject)
       .filter(([key]) => !(key in process.env))
       .forEach(([key, value]) => {
-        process.env[key] =
-          typeof value === "string" ? value : JSON.stringify(value);
+        try {
+          process.env[key] =
+            typeof value === "string" ? value : JSON.stringify(value);
+        } catch (error) {
+          // JSON.stringify throws TypeError for circular references or BigInts.
+          console.error("❌", `"${key}" in .env.js throws`, error);
+        }
       });
-  } catch (e) {
+    return envObject;
+  } catch {
     // ERR_MODULE_NOT_FOUND
   }
-}
-
-/**
- * Convert all functions recursively to strings.
- */
-function stringifyFunctions(obj) {
-  for (const key in obj) {
-    if (typeof obj[key] === "function") {
-      obj[key] = obj[key].toString();
-    }
-    if (typeof obj[key] === "object" && obj[key] !== null) {
-      stringifyFunctions(obj[key]);
-    }
-  }
-  return obj;
 }

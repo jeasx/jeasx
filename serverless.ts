@@ -13,7 +13,7 @@ import { freemem } from "node:os";
 import { join } from "node:path";
 import env from "./env.js";
 
-await env();
+const ENV = await env();
 
 const CWD = process.cwd();
 const NODE_ENV_IS_DEVELOPMENT = process.env.NODE_ENV === "development";
@@ -29,32 +29,39 @@ declare module "fastify" {
 // Create and export a Fastify app instance
 export default Fastify({
   logger: true,
-  ...(jsonToOptions(process.env.FASTIFY_SERVER_OPTIONS) as FastifyServerOptions)
+  ...((ENV?.FASTIFY_SERVER_OPTIONS ||
+    JSON.parse(
+      process.env.FASTIFY_SERVER_OPTIONS || "{}"
+    )) as FastifyServerOptions)
 })
   .register(fastifyCookie, {
-    ...(jsonToOptions(
-      process.env.FASTIFY_COOKIE_OPTIONS
-    ) as FastifyCookieOptions)
+    ...((ENV?.FASTIFY_COOKIE_OPTIONS ||
+      JSON.parse(
+        process.env.FASTIFY_COOKIE_OPTIONS || "{}"
+      )) as FastifyCookieOptions)
   })
   .register(fastifyFormbody, {
-    ...(jsonToOptions(
-      process.env.FASTIFY_FORMBODY_OPTIONS
-    ) as FastifyFormbodyOptions)
+    ...((ENV?.FASTIFY_FORMBODY_OPTIONS ||
+      JSON.parse(
+        process.env.FASTIFY_FORMBODY_OPTIONS || "{}"
+      )) as FastifyFormbodyOptions)
   })
   .register(fastifyMultipart, {
     attachFieldsToBody: "keyValues",
-    ...(jsonToOptions(
-      process.env.FASTIFY_MULTIPART_OPTIONS
-    ) as FastifyMultipartOptions)
+    ...((ENV?.FASTIFY_MULTIPART_OPTIONS ||
+      JSON.parse(
+        process.env.FASTIFY_MULTIPART_OPTIONS || "{}"
+      )) as FastifyMultipartOptions)
   })
   .register(fastifyStatic, {
     root: [["public"], ["dist", "browser"]].map((dir) => join(CWD, ...dir)),
     prefix: "/",
     wildcard: false,
     preCompressed: true,
-    ...(jsonToOptions(
-      process.env.FASTIFY_STATIC_OPTIONS
-    ) as FastifyStaticOptions)
+    ...((ENV?.FASTIFY_STATIC_OPTIONS ||
+      JSON.parse(
+        process.env.FASTIFY_STATIC_OPTIONS || "{}"
+      )) as FastifyStaticOptions)
   })
   .decorateRequest("route", "")
   .decorateRequest("path", "")
@@ -73,23 +80,6 @@ export default Fastify({
       throw error;
     }
   });
-
-/**
- * Parses JSON and instantiates all stringified functions.
- */
-function jsonToOptions(json: string) {
-  const options = JSON.parse(json || "{}");
-  for (const key in options) {
-    if (typeof options[key] === "string" && options[key].includes("=>")) {
-      try {
-        options[key] = new Function(`return ${options[key]}`)();
-      } catch (error) {
-        console.warn("⚠️", error);
-      }
-    }
-  }
-  return options;
-}
 
 // Cache for resolved route modules, 'null' means no module exists.
 const modules = new Map<string, { default: Function }>();

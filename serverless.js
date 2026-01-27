@@ -8,33 +8,35 @@ import { stat } from "node:fs/promises";
 import { freemem } from "node:os";
 import { join } from "node:path";
 import env from "./env.js";
-await env();
+const ENV = await env();
 const CWD = process.cwd();
 const NODE_ENV_IS_DEVELOPMENT = process.env.NODE_ENV === "development";
 const JEASX_ROUTE_CACHE_LIMIT = Math.floor(freemem() / 1024 / 1024);
 var serverless_default = Fastify({
   logger: true,
-  ...jsonToOptions(process.env.FASTIFY_SERVER_OPTIONS)
+  ...ENV?.FASTIFY_SERVER_OPTIONS || JSON.parse(
+    process.env.FASTIFY_SERVER_OPTIONS || "{}"
+  )
 }).register(fastifyCookie, {
-  ...jsonToOptions(
-    process.env.FASTIFY_COOKIE_OPTIONS
+  ...ENV?.FASTIFY_COOKIE_OPTIONS || JSON.parse(
+    process.env.FASTIFY_COOKIE_OPTIONS || "{}"
   )
 }).register(fastifyFormbody, {
-  ...jsonToOptions(
-    process.env.FASTIFY_FORMBODY_OPTIONS
+  ...ENV?.FASTIFY_FORMBODY_OPTIONS || JSON.parse(
+    process.env.FASTIFY_FORMBODY_OPTIONS || "{}"
   )
 }).register(fastifyMultipart, {
   attachFieldsToBody: "keyValues",
-  ...jsonToOptions(
-    process.env.FASTIFY_MULTIPART_OPTIONS
+  ...ENV?.FASTIFY_MULTIPART_OPTIONS || JSON.parse(
+    process.env.FASTIFY_MULTIPART_OPTIONS || "{}"
   )
 }).register(fastifyStatic, {
   root: [["public"], ["dist", "browser"]].map((dir) => join(CWD, ...dir)),
   prefix: "/",
   wildcard: false,
   preCompressed: true,
-  ...jsonToOptions(
-    process.env.FASTIFY_STATIC_OPTIONS
+  ...ENV?.FASTIFY_STATIC_OPTIONS || JSON.parse(
+    process.env.FASTIFY_STATIC_OPTIONS || "{}"
   )
 }).decorateRequest("route", "").decorateRequest("path", "").addHook("onRequest", async (request, reply) => {
   reply.header("Content-Type", "text/html; charset=utf-8");
@@ -48,19 +50,6 @@ var serverless_default = Fastify({
     throw error;
   }
 });
-function jsonToOptions(json) {
-  const options = JSON.parse(json || "{}");
-  for (const key in options) {
-    if (typeof options[key] === "string" && options[key].includes("=>")) {
-      try {
-        options[key] = new Function(`return ${options[key]}`)();
-      } catch (error) {
-        console.warn("\u26A0\uFE0F", error);
-      }
-    }
-  }
-  return options;
-}
 const modules = /* @__PURE__ */ new Map();
 async function handler(request, reply) {
   let response;
