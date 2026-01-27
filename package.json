@@ -28,6 +28,7 @@
     "@fastify/formbody": "8.0.2",
     "@fastify/multipart": "9.4.0",
     "@fastify/static": "9.0.0",
+    "@mdx-js/esbuild": "3.1.1",
     "@types/node": "24.10.9",
     "esbuild": "0.27.2",
     "fastify": "5.7.2",
