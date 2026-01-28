@@ -18,7 +18,7 @@ You can also create MDX-based components for use within JSX by importing them wi
 
 Since MDX supports a variety of plugins - and Jeasx provides only the MDX core to stay focused on infrastructure while letting users handle customization - the overall configuration for Jeasx has been significantly improved. Now, the configuration object from an `.env.js` file is imported directly into both the build process and server runtime, allowing you to use package imports seamlessly. Previously, (de)serializing the configuration via `process.env` restricted this capability and limited complex setups.
 
-Here’s an example of how to configure the MDX engine: if you want to enable GitHub-flavored Markdown (`remark-gfm`), add syntax highlighting (`rehype-prism-plus`), and generate IDs for your headings (`rehype-slug`), you can install and configure these plugins accordingly. For a full overview of available configuration options and plugins, check out the excellent documentation of [@mdx-js/esbuild](https://mdxjs.com/packages/esbuild).
+Here’s an example of how to configure the MDX engine: if you want to enable GitHub-flavored Markdown (`remark-gfm`), add syntax highlighting (`rehype-prism-plus`), and generate IDs for your headings (`rehype-slug`), you can install and configure these plugins accordingly in `.env.js`.
 
 ```js
 import rehypePrismPlus from "rehype-prism-plus";
@@ -35,7 +35,9 @@ export default {
 }
 ```
 
-**Breaking change:** The update to the Jeasx configuration introduced a minor change in how `ESBUILD_BROWSER_TARGET` is specified to ensure consistency across the configuration. Previously, a comma-separated string was accepted and parsed. Going forward, you must provide a proper JSON array (or its stringified form when using traditional `.env*` files or the process environment).
+For a full overview of available configuration options and plugins, check out the excellent documentation of [@mdx-js/esbuild](https://mdxjs.com/packages/esbuild).
+
+**Breaking change:** The update to the Jeasx configuration introduced a minor change in how `ESBUILD_BROWSER_TARGET` is specified to ensure consistency across the configuration. Previously, a comma-separated string was accepted and parsed. Going forward, you must provide a proper JSON array (or its stringified form when using traditional `.env` files or the process environment).
 
 ```js
 export default {
