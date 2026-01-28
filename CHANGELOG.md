@@ -4,7 +4,7 @@
 
 🎉 This release introduces support for [MDX](https://mdxjs.com), enabling you to seamlessly embed JSX within Markdown content. Just create a route with a `.mdx` extension, and you’re all set to enhance your websites and blogs with Markdown enriched by dynamic JSX components.
 
-```mdx
+```jsx
 import Layout from "./Layout"
 
 <Layout title="MDX is cool">
@@ -16,7 +16,7 @@ You can easily access existing `props` in MDX, e.g. {props.request.url}.
 
 You can also create MDX-based components for use within JSX by importing them with their full `.mdx` file extension into your JSX routes or components.
 
-Since MDX supports a variety of plugins - and Jeasx installs only the MDX core to stay focused on infrastructure while letting users handle customization - the overall configuration for Jeasx has been significantly improved. Now, the configuration object from an `.env.js` file is imported directly into both the build process and server runtime, allowing you to use package imports seamlessly. Previously, (de)serializing the configuration via `process.env` restricted this capability and limited complex setups.
+Since MDX supports a variety of plugins - and Jeasx provides only the MDX core to stay focused on infrastructure while letting users handle customization - the overall configuration for Jeasx has been significantly improved. Now, the configuration object from an `.env.js` file is imported directly into both the build process and server runtime, allowing you to use package imports seamlessly. Previously, (de)serializing the configuration via `process.env` restricted this capability and limited complex setups.
 
 Here’s an example of how to configure the MDX engine: if you want to enable GitHub-flavored Markdown (`remark-gfm`), add syntax highlighting (`rehype-prism-plus`), and generate IDs for your headings (`rehype-slug`), you can install and configure these plugins accordingly. For a full overview of available configuration options and plugins, check out the excellent documentation of [@mdx-js/esbuild](https://mdxjs.com/packages/esbuild).
 
@@ -38,9 +38,10 @@ export default {
 **Breaking change:** The update to the Jeasx configuration introduced a minor change in how `ESBUILD_BROWSER_TARGET` is specified to ensure consistency across the configuration. Previously, a comma-separated string was accepted and parsed. Going forward, you must provide a proper JSON array (or its stringified form when using traditional `.env*` files or the process environment).
 
 ```js
-{
+export default {
   /** @type import("esbuild").BuildOptions["target"] */
   ESBUILD_BROWSER_TARGET: ["chrome130", "edge130", "firefox130", "safari18"]
+  //...
 }
 ```
 
@@ -72,7 +73,7 @@ Dependency updates: `esbuild@0.27.2`, `jsx-async-runtime@2.0.2`, `@types/node@24
 
 🎉 This release introduces a more flexible configuration approach for the underlying Fastify server. You can now customize all Fastify options (including those for all used plugins) according to your needs, without having to use the formerly fixed and very restrictive set of environment variables. This change was made to eliminate the need for increasingly specific environment variables to customise the default behaviour of Jeasx.
 
-**Breaking change**: The previously supported environment variables (~~`FASTIFY_​BODY_​LIMIT, FASTIFY_​DISABLE_​REQUEST_​LOGGING, FASTIFY_​REWRITE_​URL, FASTIFY_​STATIC_​HEADERS, FASTIFY_​TRUST_​PROXY, FASTIFY_​MULTIPART_​ATTACH_​FIELDS_​TO_​BODY`~~) have been completely removed. While this may seem inconvenient for a minor release, the process of migrating your setup to the new configuration approach usually takes less than a minute. This streamlines the code base and documentation, as these features are presumably seldom used.
+**Breaking change**: The previously supported environment variables (`FASTIFY_​BODY_​LIMIT, FASTIFY_​DISABLE_​REQUEST_​LOGGING, FASTIFY_​REWRITE_​URL, FASTIFY_​STATIC_​HEADERS, FASTIFY_​TRUST_​PROXY, FASTIFY_​MULTIPART_​ATTACH_​FIELDS_​TO_​BODY`) have been completely removed. While this may seem inconvenient for a minor release, the process of migrating your setup to the new configuration approach usually takes less than a minute. This streamlines the code base and documentation, as these features are presumably seldom used.
 
 To configure Fastify (or a specific plugin), you can now use simple JSON objects which mirror the corresponding Fastify options. Have a look at the linked Fastify documentation for a reference of all existing options:
 
@@ -121,7 +122,7 @@ Dependency updates: `@types/node@24.10.1`
 
 ## 2025-11-10 - Jeasx 2.1.1 released
 
-🎉 Enhanced configuration for @fastify/static, so you can serve pre-compressed static files (see <https://github.com/fastify/fastify-static?tab=readme-ov-file#precompressed>) from `public` and `dist/browser`. Just run `gzip -rk public dist/browser` as post build for gzipping your static assets. This might be useful if you don't want to run a reverse proxy in front of your Jeasx application and serve compressed files nevertheless. Setting up compression for dynamic content can be wired up in userland via a root guard:
+🎉 Enhanced configuration for @fastify/static, so you can serve pre-compressed static files (see [fastify docs](https://github.com/fastify/fastify-static?tab=readme-ov-file#precompressed)) from `public` and `dist/browser`. Just run `gzip -rk public dist/browser` as post build for gzipping your static assets. This might be useful if you don't want to run a reverse proxy in front of your Jeasx application and serve compressed files nevertheless. Setting up compression for dynamic content can be wired up in userland via a root guard:
 
 ```js
 import { promisify } from "node:util";
