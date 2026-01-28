@@ -1,5 +1,51 @@
 # Changelog
 
+## 2026-XX-XX - Jeasx 2.3.0 released
+
+🎉 This release introduces support for [MDX](https://mdxjs.com), enabling you to seamlessly embed JSX within Markdown content. Just create a route with a `.mdx` extension, and you’re all set to enhance your websites and blogs with Markdown enriched by dynamic JSX components.
+
+```mdx
+import Layout from "./Layout"
+
+<Layout title="MDX is cool">
+# Rendering MDX with Jeasx is easy
+
+You can easily access existing `props` in MDX, e.g. {props.request.url}.
+</Layout>
+```
+
+You can also create MDX-based components for use within JSX by importing them with their full `.mdx` file extension into your JSX routes or components.
+
+Since MDX supports a variety of plugins - and Jeasx installs only the MDX core to stay focused on infrastructure while letting users handle customization - the overall configuration for Jeasx has been significantly improved. Now, the configuration object from an `.env.js` file is imported directly into both the build process and server runtime, allowing you to use package imports seamlessly. Previously, (de)serializing the configuration via `process.env` restricted this capability and limited complex setups.
+
+Here’s an example of how to configure the MDX engine: if you want to enable GitHub-flavored Markdown (`remark-gfm`), add syntax highlighting (`rehype-prism-plus`), and generate IDs for your headings (`rehype-slug`), you can install and configure these plugins accordingly. For a full overview of available configuration options and plugins, check out the excellent documentation of [@mdx-js/esbuild](https://mdxjs.com/packages/esbuild).
+
+```js
+import rehypePrismPlus from "rehype-prism-plus";
+import rehypeSlug from "rehype-slug";
+import remarkGFM from "remark-gfm";
+
+export default {
+  /** @type import("@mdx-js/esbuild").Options */
+  ESBUILD_MDX_OPTIONS: {
+    remarkPlugins: [[remarkGFM, { singleTilde: false }]],
+    rehypePlugins: [rehypePrismPlus, [rehypeSlug, { prefix: "jeasx-" }]]
+  }
+  //...
+}
+```
+
+**Breaking change:** The update to the Jeasx configuration introduced a minor change in how `ESBUILD_BROWSER_TARGET` is specified to ensure consistency across the configuration. Previously, a comma-separated string was accepted and parsed. Going forward, you must provide a proper JSON array (or its stringified form when using traditional `.env*` files or the process environment).
+
+```js
+{
+  /** @type import("esbuild").BuildOptions["target"] */
+  ESBUILD_BROWSER_TARGET: ["chrome130", "edge130", "firefox130", "safari18"]
+}
+```
+
+Dependency updates: `fastify@5.7.2`, `@fastify/multipart@9.4.0`
+
 ## 2026-01-17 - Jeasx 2.2.2 released
 
 🎉 This release now preserves the original status code when a 404 page is accessed directly (defaults to 200). This improvement makes it easier to use Jeasx as a static site generator and to fetch the 404 page with common tools for saving it to a file system.
