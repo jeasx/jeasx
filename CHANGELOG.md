@@ -10,13 +10,15 @@ import Layout from "./Layout"
 <Layout title="MDX is cool">
 # Rendering MDX with Jeasx is easy
 
-You can easily access existing `props` in MDX, e.g. {props.request.url}.
+You can easily access existing `props` in MDX:
+
+- Current url: {props.request.url}
 </Layout>
 ```
 
 You can also create MDX-based components for use within JSX by importing them with their full `.mdx` file extension into your JSX routes or components.
 
-Since MDX supports a variety of plugins - and Jeasx provides only the MDX core to stay focused on infrastructure while letting users handle customization - the overall configuration for Jeasx has been significantly improved. Now, the configuration object from an `.env.js` file is imported directly into both the build process and server runtime, allowing you to use package imports seamlessly. Previously, (de)serializing the configuration via `process.env` restricted this capability and limited complex setups.
+Since MDX supports a variety of plugins - and Jeasx provides only the MDX core to stay focused on infrastructure while letting users handle customization - the overall configuration for Jeasx has been significantly improved. Now, the configuration object from an `.env.js` file is imported directly into both the build process and server runtime, allowing you to use package imports seamlessly. Previously, (de)serializing the configuration via `process.env` restricted this capability and limited advanced setups.
 
 **Please note:** Variables loaded from `.env.js` now consistently overwrite any existing environment variables. This ensures predictable and consistent behavior across your configuration.
 
