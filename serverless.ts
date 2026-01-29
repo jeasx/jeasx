@@ -29,39 +29,24 @@ declare module "fastify" {
 // Create and export a Fastify app instance
 export default Fastify({
   logger: true,
-  ...((ENV?.FASTIFY_SERVER_OPTIONS ||
-    JSON.parse(
-      process.env.FASTIFY_SERVER_OPTIONS || "{}"
-    )) as FastifyServerOptions)
+  ...((ENV.FASTIFY_SERVER_OPTIONS || {}) as FastifyServerOptions)
 })
   .register(fastifyCookie, {
-    ...((ENV?.FASTIFY_COOKIE_OPTIONS ||
-      JSON.parse(
-        process.env.FASTIFY_COOKIE_OPTIONS || "{}"
-      )) as FastifyCookieOptions)
+    ...((ENV.FASTIFY_COOKIE_OPTIONS || {}) as FastifyCookieOptions)
   })
   .register(fastifyFormbody, {
-    ...((ENV?.FASTIFY_FORMBODY_OPTIONS ||
-      JSON.parse(
-        process.env.FASTIFY_FORMBODY_OPTIONS || "{}"
-      )) as FastifyFormbodyOptions)
+    ...((ENV.FASTIFY_FORMBODY_OPTIONS || {}) as FastifyFormbodyOptions)
   })
   .register(fastifyMultipart, {
     attachFieldsToBody: "keyValues",
-    ...((ENV?.FASTIFY_MULTIPART_OPTIONS ||
-      JSON.parse(
-        process.env.FASTIFY_MULTIPART_OPTIONS || "{}"
-      )) as FastifyMultipartOptions)
+    ...((ENV.FASTIFY_MULTIPART_OPTIONS || {}) as FastifyMultipartOptions)
   })
   .register(fastifyStatic, {
     root: [["public"], ["dist", "browser"]].map((dir) => join(CWD, ...dir)),
     prefix: "/",
     wildcard: false,
     preCompressed: true,
-    ...((ENV?.FASTIFY_STATIC_OPTIONS ||
-      JSON.parse(
-        process.env.FASTIFY_STATIC_OPTIONS || "{}"
-      )) as FastifyStaticOptions)
+    ...((ENV.FASTIFY_STATIC_OPTIONS || {}) as FastifyStaticOptions)
   })
   .decorateRequest("route", "")
   .decorateRequest("path", "")

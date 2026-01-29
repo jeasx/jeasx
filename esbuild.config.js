@@ -4,32 +4,31 @@ import env from "./env.js";
 
 const ENV = await env();
 
-const BUILD_TIME = `"${Date.now().toString(36)}"`;
+const BUILD_TIME = `"${ENV.BUILD_TIME || Date.now().toString(36)}"`;
 
-const BROWSER_PUBLIC_ENV = Object.keys(process.env)
+const BROWSER_PUBLIC_ENV = Object.keys(ENV)
   .filter((key) => key.startsWith("BROWSER_PUBLIC_"))
   .reduce(
     (env, key) => {
-      env[`process.env.${key}`] = `"${process.env[key]}"`;
+      env[`process.env.${key}`] = `"${ENV[key]}"`;
       return env;
     },
     { "process.env.BROWSER_PUBLIC_BUILD_TIME": BUILD_TIME }
   );
 
-const ESBUILD_BROWSER_TARGET =
-  ENV?.ESBUILD_BROWSER_TARGET ||
-  JSON.parse(
-    process.env.ESBUILD_BROWSER_TARGET ||
-      '["chrome130","edge130","firefox130","safari18"]'
-  );
+const ESBUILD_BROWSER_TARGET = ENV.ESBUILD_BROWSER_TARGET || [
+  "chrome130",
+  "edge130",
+  "firefox130",
+  "safari18"
+];
 
 const ESBUILD_MDX_PLUGIN = mdx({
   development: process.env.NODE_ENV === "development",
   jsxImportSource: "jsx-async-runtime",
   elementAttributeNameCase: "html",
   stylePropertyNameCase: "css",
-  ...(ENV?.ESBUILD_MDX_OPTIONS ||
-    JSON.parse(process.env.ESBUILD_MDX_OPTIONS || "{}"))
+  ...(ENV.ESBUILD_MDX_OPTIONS || {})
 });
 
 /** @type esbuild.BuildOptions[] */

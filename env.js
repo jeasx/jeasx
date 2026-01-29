@@ -2,8 +2,7 @@ import { existsSync } from "node:fs";
 import { join } from "node:path";
 
 /**
- * Load environment variables from .env* files
- * into process.env in the following order:
+ * Load environment variables from .env-files into process.env in the following order:
  *
  * 1. .env.<NODE_ENV>.local
  * 2. .env.<NODE_ENV>
@@ -12,8 +11,7 @@ import { join } from "node:path";
  * 5. .env.defaults
  * 6. .env.js
  *
- * If a variable already exists in a previous environment,
- * it will be not overwritten at a later stage.
+ * .env.js is imported as an ES module and will always overwrite existing variables.
  */
 export default async function env() {
   if (process.loadEnvFile) {
@@ -31,19 +29,18 @@ export default async function env() {
   try {
     const envFile = `file://${join(process.cwd(), ".env.js")}`;
     const envObject = (await import(envFile)).default;
-    Object.entries(envObject)
-      .filter(([key]) => !(key in process.env))
-      .forEach(([key, value]) => {
-        try {
-          process.env[key] =
-            typeof value === "string" ? value : JSON.stringify(value);
-        } catch (error) {
-          // JSON.stringify throws TypeError for circular references or BigInts.
-          console.error("❌", `"${key}" in .env.js throws`, error);
-        }
-      });
-    return envObject;
+    Object.entries(envObject).forEach(([key, value]) => {
+      try {
+        process.env[key] =
+          typeof value === "string" ? value : JSON.stringify(value);
+      } catch (error) {
+        // JSON.stringify throws TypeError for circular references or BigInts.
+        console.error("❌", `"${key}" in .env.js throws`, error);
+      }
+    });
+    return { ...process.env, ...envObject };
   } catch {
     // ERR_MODULE_NOT_FOUND
+    return { ...process.env };
   }
 }
