@@ -1,14 +1,14 @@
 # Changelog
 
-## 2026-XX-XX - Jeasx 2.3.0 released
+## 2026-01-30 - Jeasx 2.3.0 released
 
 🎉 This release introduces support for [MDX](https://mdxjs.com), enabling you to seamlessly embed JSX within Markdown content. Just create a route with a `.mdx` extension, and you’re all set to enhance your websites and blogs with Markdown enriched by dynamic JSX components.
 
 ```jsx
 import Layout from "./Layout"
 
-<Layout title="MDX is cool">
-# Rendering MDX with Jeasx is easy
+<Layout title="MDX - Markdown for the component era">
+# MDX as content companion alongside JSX
 
 You can easily access existing `props` in MDX:
 
@@ -41,7 +41,7 @@ export default {
 
 For a full overview of available configuration options and plugins, check out the excellent documentation of [@mdx-js/esbuild](https://mdxjs.com/packages/esbuild).
 
-**Please note:** The update to the Jeasx configuration introduced a minor change in how `ESBUILD_BROWSER_TARGET` is specified to ensure consistency across the configuration. Previously, a comma-separated string was accepted and parsed. Going forward, you must provide a proper JSON array (or its stringified form when using traditional `.env` files or the process environment).
+**Please note:** The update to the Jeasx configuration introduced a minor change in how `ESBUILD_BROWSER_TARGET` is specified to ensure consistency across the configuration. Previously, a comma-separated string was accepted and parsed as customization. Going forward, you must provide a proper JSON array (or its stringified form when using traditional `.env` files or the process environment).
 
 ```js
 export default {
