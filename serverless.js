@@ -14,20 +14,20 @@ const NODE_ENV_IS_DEVELOPMENT = process.env.NODE_ENV === "development";
 const JEASX_ROUTE_CACHE_LIMIT = Math.floor(freemem() / 1024 / 1024);
 var serverless_default = Fastify({
   logger: true,
-  ...ENV.FASTIFY_SERVER_OPTIONS || {}
+  ...ENV.FASTIFY_SERVER_OPTIONS
 }).register(fastifyCookie, {
-  ...ENV.FASTIFY_COOKIE_OPTIONS || {}
+  ...ENV.FASTIFY_COOKIE_OPTIONS
 }).register(fastifyFormbody, {
-  ...ENV.FASTIFY_FORMBODY_OPTIONS || {}
+  ...ENV.FASTIFY_FORMBODY_OPTIONS
 }).register(fastifyMultipart, {
   attachFieldsToBody: "keyValues",
-  ...ENV.FASTIFY_MULTIPART_OPTIONS || {}
+  ...ENV.FASTIFY_MULTIPART_OPTIONS
 }).register(fastifyStatic, {
   root: [["public"], ["dist", "browser"]].map((dir) => join(CWD, ...dir)),
   prefix: "/",
   wildcard: false,
   preCompressed: true,
-  ...ENV.FASTIFY_STATIC_OPTIONS || {}
+  ...ENV.FASTIFY_STATIC_OPTIONS
 }).decorateRequest("route", "").decorateRequest("path", "").addHook("onRequest", async (request, reply) => {
   reply.header("Content-Type", "text/html; charset=utf-8");
   const index = request.url.indexOf("?");
@@ -133,9 +133,7 @@ function generateEdges(path) {
   const edges = [];
   if (path) {
     const lastSegment = path.lastIndexOf("/") + 1;
-    edges.push(
-      `${path.substring(0, lastSegment)}[${path.substring(lastSegment)}]`
-    );
+    edges.push(`${path.substring(0, lastSegment)}[${path.substring(lastSegment)}]`);
   }
   edges.push(`${path}/[index]`);
   return edges;

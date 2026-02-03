@@ -16,12 +16,12 @@ import { join } from "node:path";
 export default async function env() {
   if (process.loadEnvFile) {
     [
-      ...(process.env.NODE_ENV ?
-        [`.env.${process.env.NODE_ENV}.local`, `.env.${process.env.NODE_ENV}`]
-      : []),
+      ...(process.env.NODE_ENV
+        ? [`.env.${process.env.NODE_ENV}.local`, `.env.${process.env.NODE_ENV}`]
+        : []),
       ".env.local",
       ".env",
-      ".env.defaults"
+      ".env.defaults",
     ]
       .filter(existsSync)
       .forEach(process.loadEnvFile);
@@ -31,8 +31,7 @@ export default async function env() {
     const envObject = (await import(envFile)).default;
     Object.entries(envObject).forEach(([key, value]) => {
       try {
-        process.env[key] =
-          typeof value === "string" ? value : JSON.stringify(value);
+        process.env[key] = typeof value === "string" ? value : JSON.stringify(value);
       } catch (error) {
         // JSON.stringify throws TypeError for circular references or BigInts.
         console.error("❌", `"${key}" in .env.js throws`, error);

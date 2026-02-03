@@ -2,11 +2,7 @@ import fastifyCookie, { FastifyCookieOptions } from "@fastify/cookie";
 import fastifyFormbody, { FastifyFormbodyOptions } from "@fastify/formbody";
 import fastifyMultipart, { FastifyMultipartOptions } from "@fastify/multipart";
 import fastifyStatic, { FastifyStaticOptions } from "@fastify/static";
-import Fastify, {
-  FastifyReply,
-  FastifyRequest,
-  FastifyServerOptions
-} from "fastify";
+import Fastify, { FastifyReply, FastifyRequest, FastifyServerOptions } from "fastify";
 import { jsxToString } from "jsx-async-runtime";
 import { stat } from "node:fs/promises";
 import { freemem } from "node:os";
@@ -29,24 +25,24 @@ declare module "fastify" {
 // Create and export a Fastify app instance
 export default Fastify({
   logger: true,
-  ...((ENV.FASTIFY_SERVER_OPTIONS || {}) as FastifyServerOptions)
+  ...(ENV.FASTIFY_SERVER_OPTIONS as FastifyServerOptions),
 })
   .register(fastifyCookie, {
-    ...((ENV.FASTIFY_COOKIE_OPTIONS || {}) as FastifyCookieOptions)
+    ...(ENV.FASTIFY_COOKIE_OPTIONS as FastifyCookieOptions),
   })
   .register(fastifyFormbody, {
-    ...((ENV.FASTIFY_FORMBODY_OPTIONS || {}) as FastifyFormbodyOptions)
+    ...(ENV.FASTIFY_FORMBODY_OPTIONS as FastifyFormbodyOptions),
   })
   .register(fastifyMultipart, {
     attachFieldsToBody: "keyValues",
-    ...((ENV.FASTIFY_MULTIPART_OPTIONS || {}) as FastifyMultipartOptions)
+    ...(ENV.FASTIFY_MULTIPART_OPTIONS as FastifyMultipartOptions),
   })
   .register(fastifyStatic, {
     root: [["public"], ["dist", "browser"]].map((dir) => join(CWD, ...dir)),
     prefix: "/",
     wildcard: false,
     preCompressed: true,
-    ...((ENV.FASTIFY_STATIC_OPTIONS || {}) as FastifyStaticOptions)
+    ...(ENV.FASTIFY_STATIC_OPTIONS as FastifyStaticOptions),
   })
   .decorateRequest("route", "")
   .decorateRequest("path", "")
@@ -132,7 +128,7 @@ async function handler(request: FastifyRequest, reply: FastifyReply) {
       response = await module.default.call(context, {
         request,
         reply,
-        ...(typeof response === "object" ? response : {})
+        ...(typeof response === "object" ? response : {}),
       });
 
       if (reply.sent) {
@@ -144,11 +140,7 @@ async function handler(request: FastifyRequest, reply: FastifyReply) {
           reply.status(404);
         }
         break;
-      } else if (
-        typeof response === "string" ||
-        Buffer.isBuffer(response) ||
-        isJSX(response)
-      ) {
+      } else if (typeof response === "string" || Buffer.isBuffer(response) || isJSX(response)) {
         break;
       } else if (
         route.endsWith("/[...guard]") &&
@@ -190,7 +182,7 @@ function generateRoutes(path: string): string[] {
       .map((segment) => `${segment}/[...guard]`),
     ...edges.map((edge) => `${edge}`),
     ...segments.map((segment) => `${segment}/[...path]`),
-    ...segments.map((segment) => `${segment}/[404]`)
+    ...segments.map((segment) => `${segment}/[404]`),
   ];
 }
 
@@ -222,9 +214,7 @@ function generateEdges(path: string): string[] {
   const edges = [];
   if (path) {
     const lastSegment = path.lastIndexOf("/") + 1;
-    edges.push(
-      `${path.substring(0, lastSegment)}[${path.substring(lastSegment)}]`
-    );
+    edges.push(`${path.substring(0, lastSegment)}[${path.substring(lastSegment)}]`);
   }
   edges.push(`${path}/[index]`);
   return edges;
@@ -241,12 +231,11 @@ function isJSX(obj: unknown): boolean {
  * Renders JSX to string and applies optional response handler.
  */
 async function renderJSX(context: object, response: unknown) {
-  const payload =
-    isJSX(response) ? await jsxToString.call(context, response) : response;
+  const payload = isJSX(response) ? await jsxToString.call(context, response) : response;
 
   // Post-process the payload with an optional response handler
   const responseHandler = context["responseHandler"];
-  return typeof responseHandler === "function" ?
-      await responseHandler.call(context, payload)
+  return typeof responseHandler === "function"
+    ? await responseHandler.call(context, payload)
     : payload;
 }

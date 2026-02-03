@@ -13,14 +13,14 @@ const BROWSER_PUBLIC_ENV = Object.keys(ENV)
       env[`process.env.${key}`] = `"${ENV[key]}"`;
       return env;
     },
-    { "process.env.BROWSER_PUBLIC_BUILD_TIME": BUILD_TIME }
+    { "process.env.BROWSER_PUBLIC_BUILD_TIME": BUILD_TIME },
   );
 
 const ESBUILD_BROWSER_TARGET = ENV.ESBUILD_BROWSER_TARGET || [
   "chrome130",
   "edge130",
   "firefox130",
-  "safari18"
+  "safari18",
 ];
 
 const ESBUILD_MDX_PLUGIN = mdx({
@@ -28,22 +28,20 @@ const ESBUILD_MDX_PLUGIN = mdx({
   jsxImportSource: "jsx-async-runtime",
   elementAttributeNameCase: "html",
   stylePropertyNameCase: "css",
-  ...(ENV.ESBUILD_MDX_OPTIONS || {})
+  ...ENV.ESBUILD_MDX_OPTIONS,
 });
 
 /** @type esbuild.BuildOptions[] */
 const buildOptions = [
   {
-    entryPoints: ["js", "ts", "jsx", "tsx", "mdx"].map(
-      (ext) => `src/**/[*].${ext}`
-    ),
+    entryPoints: ["js", "ts", "jsx", "tsx", "mdx"].map((ext) => `src/**/[*].${ext}`),
     define: {
-      "process.env.BUILD_TIME": BUILD_TIME
+      "process.env.BUILD_TIME": BUILD_TIME,
     },
     minify: process.env.NODE_ENV !== "development",
     logLevel: "info",
     logOverride: {
-      "empty-glob": "silent"
+      "empty-glob": "silent",
     },
     color: true,
     bundle: true,
@@ -52,17 +50,15 @@ const buildOptions = [
     outdir: "dist/server",
     platform: "neutral",
     packages: "external",
-    plugins: [ESBUILD_MDX_PLUGIN]
+    plugins: [ESBUILD_MDX_PLUGIN],
   },
   {
-    entryPoints: ["js", "ts", "jsx", "tsx", "css"].map(
-      (ext) => `src/**/index.${ext}`
-    ),
+    entryPoints: ["js", "ts", "jsx", "tsx", "css"].map((ext) => `src/**/index.${ext}`),
     define: BROWSER_PUBLIC_ENV,
     minify: process.env.NODE_ENV !== "development",
     logLevel: "info",
     logOverride: {
-      "empty-glob": "silent"
+      "empty-glob": "silent",
     },
     color: true,
     bundle: true,
@@ -84,10 +80,10 @@ const buildOptions = [
       "*.ttf",
       "*.otf",
       "*.woff",
-      "*.woff2"
+      "*.woff2",
     ],
-    plugins: [ESBUILD_MDX_PLUGIN]
-  }
+    plugins: [ESBUILD_MDX_PLUGIN],
+  },
 ];
 
 buildOptions.forEach(async (options) => {
