@@ -3,25 +3,28 @@
   "version": "2.3.0",
   "description": "Jeasx - the ease of JSX with the power of SSR",
   "keywords": [
+    "fastify",
     "jsx",
-    "ssr",
     "node",
-    "fastify"
+    "ssr"
   ],
-  "license": "MIT",
   "homepage": "https://www.jeasx.dev",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/jeasx/jeasx.git"
-  },
+  "license": "MIT",
   "author": {
     "name": "Maik Jablonski",
     "email": "mail@jeasx.dev"
   },
-  "type": "module",
-  "main": "server.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jeasx/jeasx.git"
+  },
   "bin": {
     "jeasx": "cli.js"
+  },
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "build": "esbuild --platform=node --format=esm --sourcemap=linked --sources-content=false --outdir=. serverless.ts"
   },
   "dependencies": {
     "@fastify/cookie": "11.0.2",
@@ -29,12 +32,9 @@
     "@fastify/multipart": "9.4.0",
     "@fastify/static": "9.0.0",
     "@mdx-js/esbuild": "3.1.1",
-    "@types/node": "24.10.9",
+    "@types/node": "24.10.10",
     "esbuild": "0.27.2",
-    "fastify": "5.7.2",
+    "fastify": "5.7.4",
     "jsx-async-runtime": "2.0.2"
-  },
-  "scripts": {
-    "build": "esbuild --platform=node --format=esm --sourcemap=linked --sources-content=false --outdir=. serverless.ts"
   }
 }
