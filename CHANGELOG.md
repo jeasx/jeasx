@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-02-04 - Jeasx 2.3.1 released
+
+🎉 Just a patch release to update Fastify to fix [CVE-2026-25224](https://github.com/fastify/fastify/security/advisories/GHSA-mrq3-vjjr-p77c).
+
+Additionally, I performed minor refactorings identified by [oxlint](https://oxc.rs/docs/guide/usage/linter.html) and replaced `prettier` with [oxfmt](https://oxc.rs/docs/guide/usage/formatter), a high-performance formatter optimized for the JavaScript ecosystem.
+
+Dependency updates: `fastify@5.7.4`, `@types/node@24.10.10`
+
 ## 2026-01-30 - Jeasx 2.3.0 released
 
 🎉 This release introduces support for [MDX](https://mdxjs.com), enabling you to seamlessly embed JSX within Markdown content. Just create a route with a `.mdx` extension, and you’re all set to enhance your websites and blogs with Markdown enriched by dynamic JSX components.
