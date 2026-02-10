@@ -406,7 +406,7 @@ Added two new environment variables (`FASTIFY_DISABLE_REQUEST_LOGGING` and `FAST
 
 ## 2024-12-01 - Jeasx 1.1.0 released
 
-🎉 Migrated from dotenv to dotenv-flow, so you can use NODE_ENV-specific .env\* files (like `.env.development`) to configure different environments for production and development. This is useful to disable caching headers (e.g. via `FASTIFY_STATIC_HEADERS`) in development, as Jeasx applies `FASTIFY_STATIC_HEADERS` in development from now on for a more consistent developer expierence. See updated .env-files in the quickstart-project for an example how to disable caching in development. This is only needed if you have configured `FASTIFY_STATIC_HEADERS` for your existing projects.
+🎉 Migrated from dotenv to dotenv-flow, so you can use NODE_ENV-specific .env\* files (like `.env.development`) to configure different environments for production and development. This is useful to disable caching headers (e.g. via `FASTIFY_STATIC_HEADERS`) in development, as Jeasx applies `FASTIFY_STATIC_HEADERS` in development from now on for a more consistent developer experience. See updated .env-files in the quickstart-project for an example how to disable caching in development. This is only needed if you have configured `FASTIFY_STATIC_HEADERS` for your existing projects.
 
 Bumped default environment variable `ESBUILD_BROWSER_TARGET` to more recent browser versions (e.g. `chrome126, edge126, firefox128, safari17`). If you want to stick with older versions, you can override it via the environment. Learn more about possible values at the esbuild website.
 
