@@ -32,7 +32,7 @@
     "@fastify/multipart": "9.4.0",
     "@fastify/static": "9.0.0",
     "@mdx-js/esbuild": "3.1.1",
-    "@types/node": "24.10.13",
+    "@types/node": "25.2.3",
     "esbuild": "0.27.3",
     "fastify": "5.7.4",
     "jsx-async-runtime": "2.0.2"
