@@ -1,6 +1,6 @@
 {
   "name": "jeasx",
-  "version": "2.3.1",
+  "version": "2.3.2",
   "description": "Jeasx - the ease of JSX with the power of SSR",
   "keywords": [
     "fastify",
