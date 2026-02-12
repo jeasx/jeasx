@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-02-12 - Jeasx 2.3.2 released
+
+🎉 Upgraded to @types/node@25, enabling seamless development with Node 25 while maintaining compatibility for Node 24 users.
+
+Dependency updates: `esbuild@0.27.3`, `@types/node@25.2.3`
+
 ## 2026-02-04 - Jeasx 2.3.1 released
 
 🎉 Just a patch release to update Fastify to fix [CVE-2026-25224](https://github.com/fastify/fastify/security/advisories/GHSA-mrq3-vjjr-p77c).
