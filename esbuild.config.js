@@ -1,4 +1,3 @@
-import mdx from "@mdx-js/esbuild";
 import * as esbuild from "esbuild";
 import env from "./env.js";
 
@@ -16,33 +15,15 @@ const BROWSER_PUBLIC_ENV = Object.keys(ENV)
     { "process.env.BROWSER_PUBLIC_BUILD_TIME": BUILD_TIME },
   );
 
-const ESBUILD_BROWSER_TARGET = ENV.ESBUILD_BROWSER_TARGET || [
-  "chrome130",
-  "edge130",
-  "firefox130",
-  "safari18",
-];
-
-const ESBUILD_MDX_PLUGIN = mdx({
-  development: process.env.NODE_ENV === "development",
-  jsxImportSource: "jsx-async-runtime",
-  elementAttributeNameCase: "html",
-  stylePropertyNameCase: "css",
-  ...ENV.ESBUILD_MDX_OPTIONS,
-});
-
 /** @type esbuild.BuildOptions[] */
 const buildOptions = [
   {
-    entryPoints: ["js", "ts", "jsx", "tsx", "mdx"].map((ext) => `src/**/[*].${ext}`),
+    entryPoints: ["src/**/[*].*"],
     define: {
       "process.env.BUILD_TIME": BUILD_TIME,
     },
     minify: process.env.NODE_ENV !== "development",
     logLevel: "info",
-    logOverride: {
-      "empty-glob": "silent",
-    },
     color: true,
     bundle: true,
     sourcemap: process.sourceMapsEnabled,
@@ -50,16 +31,13 @@ const buildOptions = [
     outdir: "dist/server",
     platform: "neutral",
     packages: "external",
-    plugins: [ESBUILD_MDX_PLUGIN],
+    ...ENV.ESBUILD_SERVER_OPTIONS,
   },
   {
-    entryPoints: ["js", "ts", "jsx", "tsx", "css"].map((ext) => `src/**/index.${ext}`),
+    entryPoints: ["src/**/index.*"],
     define: BROWSER_PUBLIC_ENV,
     minify: process.env.NODE_ENV !== "development",
     logLevel: "info",
-    logOverride: {
-      "empty-glob": "silent",
-    },
     color: true,
     bundle: true,
     sourcemap: process.sourceMapsEnabled,
@@ -67,7 +45,7 @@ const buildOptions = [
     outdir: "dist/browser",
     platform: "browser",
     format: "esm",
-    target: ESBUILD_BROWSER_TARGET,
+    target: ["chrome130", "edge130", "firefox130", "safari18"],
     external: [
       "*.avif",
       "*.gif",
@@ -82,7 +60,7 @@ const buildOptions = [
       "*.woff",
       "*.woff2",
     ],
-    plugins: [ESBUILD_MDX_PLUGIN],
+    ...ENV.ESBUILD_BROWSER_OPTIONS,
   },
 ];
 
