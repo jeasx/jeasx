@@ -46,16 +46,21 @@ export default Fastify({
   })
   .decorateRequest("route", "")
   .decorateRequest("path", "")
-  .addHook("onRequest", async (request, reply) => {
-    // Set default content type to text/html
-    reply.header("content-type", "text/html; charset=utf-8");
+  .addHook("onRequest", async (request) => {
     // Extract path from url
     const index = request.url.indexOf("?");
     request.path = index === -1 ? request.url : request.url.slice(0, index);
   })
   .all("*", async (request: FastifyRequest, reply: FastifyReply) => {
     try {
-      return await handler(request, reply);
+      const payload = await handler(request, reply);
+      if (
+        reply.getHeader("content-type") === undefined &&
+        (typeof payload === "string" || Buffer.isBuffer(payload))
+      ) {
+        reply.type("text/html; charset=utf-8");
+      }
+      return payload;
     } catch (error) {
       console.error("❌", error);
       throw error;

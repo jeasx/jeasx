@@ -28,13 +28,16 @@ var serverless_default = Fastify({
   wildcard: false,
   preCompressed: true,
   ...ENV.FASTIFY_STATIC_OPTIONS
-}).decorateRequest("route", "").decorateRequest("path", "").addHook("onRequest", async (request, reply) => {
-  reply.header("content-type", "text/html; charset=utf-8");
+}).decorateRequest("route", "").decorateRequest("path", "").addHook("onRequest", async (request) => {
   const index = request.url.indexOf("?");
   request.path = index === -1 ? request.url : request.url.slice(0, index);
 }).all("*", async (request, reply) => {
   try {
-    return await handler(request, reply);
+    const payload = await handler(request, reply);
+    if (reply.getHeader("content-type") === void 0 && (typeof payload === "string" || Buffer.isBuffer(payload))) {
+      reply.type("text/html; charset=utf-8");
+    }
+    return payload;
   } catch (error) {
     console.error("\u274C", error);
     throw error;
