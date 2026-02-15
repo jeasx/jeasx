@@ -29,7 +29,7 @@ var serverless_default = Fastify({
   preCompressed: true,
   ...ENV.FASTIFY_STATIC_OPTIONS
 }).decorateRequest("route", "").decorateRequest("path", "").addHook("onRequest", async (request, reply) => {
-  reply.header("Content-Type", "text/html; charset=utf-8");
+  reply.header("content-type", "text/html; charset=utf-8");
   const index = request.url.indexOf("?");
   request.path = index === -1 ? request.url : request.url.slice(0, index);
 }).all("*", async (request, reply) => {
@@ -79,11 +79,12 @@ async function handler(request, reply) {
         }
       }
       request.route = route;
-      response = await module.default.call(context, {
+      response = // Call functions with request, reply and optional props
+      typeof module.default === "function" ? await module.default.call(context, {
         request,
         reply,
         ...typeof response === "object" ? response : {}
-      });
+      }) : module.default;
       if (reply.sent) {
         return;
       } else if (route.endsWith("/[404]")) {

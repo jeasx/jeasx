@@ -48,7 +48,7 @@ export default Fastify({
   .decorateRequest("path", "")
   .addHook("onRequest", async (request, reply) => {
     // Set default content type to text/html
-    reply.header("Content-Type", "text/html; charset=utf-8");
+    reply.header("content-type", "text/html; charset=utf-8");
     // Extract path from url
     const index = request.url.indexOf("?");
     request.path = index === -1 ? request.url : request.url.slice(0, index);
@@ -124,12 +124,15 @@ async function handler(request: FastifyRequest, reply: FastifyReply) {
       // Store current route in request
       request.route = route;
 
-      // Call the handler with request, reply and optional props
-      response = await module.default.call(context, {
-        request,
-        reply,
-        ...(typeof response === "object" ? response : {}),
-      });
+      response =
+        // Call functions with request, reply and optional props
+        typeof module.default === "function"
+          ? await module.default.call(context, {
+              request,
+              reply,
+              ...(typeof response === "object" ? response : {}),
+            })
+          : module.default; // otherwise return default export
 
       if (reply.sent) {
         return;
