@@ -31,7 +31,17 @@ export default async function env() {
     const envObject = (await import(envFile)).default;
     Object.entries(envObject).forEach(([key, value]) => {
       try {
-        process.env[key] = typeof value === "string" ? value : JSON.stringify(value);
+        switch (typeof value) {
+          case "string":
+            process.env[key] = value;
+            break;
+          case "function":
+            process.env[key] = value.toString();
+            break;
+          default:
+            process.env[key] = JSON.stringify(value);
+            break;
+        }
       } catch (error) {
         // JSON.stringify throws TypeError for circular references or BigInts.
         console.error("❌", `"${key}" in .env.js throws`, error);

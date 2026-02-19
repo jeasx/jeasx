@@ -2,7 +2,12 @@ import fastifyCookie, { FastifyCookieOptions } from "@fastify/cookie";
 import fastifyFormbody, { FastifyFormbodyOptions } from "@fastify/formbody";
 import fastifyMultipart, { FastifyMultipartOptions } from "@fastify/multipart";
 import fastifyStatic, { FastifyStaticOptions } from "@fastify/static";
-import Fastify, { FastifyReply, FastifyRequest, FastifyServerOptions } from "fastify";
+import fastify, {
+  FastifyInstance,
+  FastifyReply,
+  FastifyRequest,
+  FastifyServerOptions,
+} from "fastify";
 import { jsxToString } from "jsx-async-runtime";
 import { stat } from "node:fs/promises";
 import { freemem } from "node:os";
@@ -22,49 +27,59 @@ declare module "fastify" {
   }
 }
 
-// Create and export a Fastify app instance
-export default Fastify({
-  logger: true,
-  ...(ENV.FASTIFY_SERVER_OPTIONS as FastifyServerOptions),
-})
-  .register(fastifyCookie, {
-    ...(ENV.FASTIFY_COOKIE_OPTIONS as FastifyCookieOptions),
-  })
-  .register(fastifyFormbody, {
-    ...(ENV.FASTIFY_FORMBODY_OPTIONS as FastifyFormbodyOptions),
-  })
-  .register(fastifyMultipart, {
-    attachFieldsToBody: "keyValues",
-    ...(ENV.FASTIFY_MULTIPART_OPTIONS as FastifyMultipartOptions),
-  })
-  .register(fastifyStatic, {
-    root: [["public"], ["dist", "browser"]].map((dir) => join(CWD, ...dir)),
-    prefix: "/",
-    wildcard: false,
-    preCompressed: true,
-    ...(ENV.FASTIFY_STATIC_OPTIONS as FastifyStaticOptions),
-  })
-  .decorateRequest("route", "")
-  .decorateRequest("path", "")
-  .addHook("onRequest", async (request) => {
-    // Extract path from url
-    const index = request.url.indexOf("?");
-    request.path = index === -1 ? request.url : request.url.slice(0, index);
-  })
-  .all("*", async (request: FastifyRequest, reply: FastifyReply) => {
-    try {
-      const payload = await handler(request, reply);
-      if (
-        reply.getHeader("content-type") === undefined &&
-        (typeof payload === "string" || Buffer.isBuffer(payload))
-      ) {
-        reply.type("text/html; charset=utf-8");
-      }
-      return payload;
-    } catch (error) {
-      console.error("❌", error);
-      throw error;
-    }
+// Enhance Fastify server from userland
+const FASTIFY_SERVER = (ENV.FASTIFY_SERVER ?? ((fastify) => fastify)) as (
+  fastify: FastifyInstance,
+) => FastifyInstance;
+
+// Create and export a Fastify instance
+export default FASTIFY_SERVER(
+  fastify({
+    logger: true,
+    ...(ENV.FASTIFY_SERVER_OPTIONS?.() as FastifyServerOptions),
+  }),
+)
+  // Create encapsulation context
+  .register((fastify) => {
+    fastify
+      .register(fastifyCookie, {
+        ...(ENV.FASTIFY_COOKIE_OPTIONS?.() as FastifyCookieOptions),
+      })
+      .register(fastifyFormbody, {
+        ...(ENV.FASTIFY_FORMBODY_OPTIONS?.() as FastifyFormbodyOptions),
+      })
+      .register(fastifyMultipart, {
+        attachFieldsToBody: "keyValues",
+        ...(ENV.FASTIFY_MULTIPART_OPTIONS?.() as FastifyMultipartOptions),
+      })
+      .register(fastifyStatic, {
+        root: [["public"], ["dist", "browser"]].map((dir) => join(CWD, ...dir)),
+        prefix: "/",
+        wildcard: false,
+        ...(ENV.FASTIFY_STATIC_OPTIONS?.() as FastifyStaticOptions),
+      })
+      .decorateRequest("route", "")
+      .decorateRequest("path", "")
+      .addHook("onRequest", async (request) => {
+        // Extract path from url
+        const index = request.url.indexOf("?");
+        request.path = index === -1 ? request.url : request.url.slice(0, index);
+      })
+      .all("*", async (request: FastifyRequest, reply: FastifyReply) => {
+        try {
+          const payload = await handler(request, reply);
+          if (
+            reply.getHeader("content-type") === undefined &&
+            (typeof payload === "string" || Buffer.isBuffer(payload))
+          ) {
+            reply.type("text/html; charset=utf-8");
+          }
+          return payload;
+        } catch (error) {
+          console.error("❌", error);
+          throw error;
+        }
+      });
   });
 
 // Cache for resolved route modules, 'null' means no module exists.

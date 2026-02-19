@@ -31,7 +31,7 @@ const buildOptions = [
     outdir: "dist/server",
     platform: "neutral",
     packages: "external",
-    ...ENV.ESBUILD_SERVER_OPTIONS,
+    ...ENV.ESBUILD_SERVER_OPTIONS?.(),
   },
   {
     entryPoints: ["src/**/index.*"],
@@ -60,7 +60,7 @@ const buildOptions = [
       "*.woff",
       "*.woff2",
     ],
-    ...ENV.ESBUILD_BROWSER_OPTIONS,
+    ...ENV.ESBUILD_BROWSER_OPTIONS?.(),
   },
 ];
 

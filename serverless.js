@@ -2,7 +2,7 @@ import fastifyCookie from "@fastify/cookie";
 import fastifyFormbody from "@fastify/formbody";
 import fastifyMultipart from "@fastify/multipart";
 import fastifyStatic from "@fastify/static";
-import Fastify from "fastify";
+import fastify from "fastify";
 import { jsxToString } from "jsx-async-runtime";
 import { stat } from "node:fs/promises";
 import { freemem } from "node:os";
@@ -12,36 +12,40 @@ const ENV = await env();
 const CWD = process.cwd();
 const NODE_ENV_IS_DEVELOPMENT = process.env.NODE_ENV === "development";
 const JEASX_ROUTE_CACHE_LIMIT = Math.floor(freemem() / 1024 / 1024);
-var serverless_default = Fastify({
-  logger: true,
-  ...ENV.FASTIFY_SERVER_OPTIONS
-}).register(fastifyCookie, {
-  ...ENV.FASTIFY_COOKIE_OPTIONS
-}).register(fastifyFormbody, {
-  ...ENV.FASTIFY_FORMBODY_OPTIONS
-}).register(fastifyMultipart, {
-  attachFieldsToBody: "keyValues",
-  ...ENV.FASTIFY_MULTIPART_OPTIONS
-}).register(fastifyStatic, {
-  root: [["public"], ["dist", "browser"]].map((dir) => join(CWD, ...dir)),
-  prefix: "/",
-  wildcard: false,
-  preCompressed: true,
-  ...ENV.FASTIFY_STATIC_OPTIONS
-}).decorateRequest("route", "").decorateRequest("path", "").addHook("onRequest", async (request) => {
-  const index = request.url.indexOf("?");
-  request.path = index === -1 ? request.url : request.url.slice(0, index);
-}).all("*", async (request, reply) => {
-  try {
-    const payload = await handler(request, reply);
-    if (reply.getHeader("content-type") === void 0 && (typeof payload === "string" || Buffer.isBuffer(payload))) {
-      reply.type("text/html; charset=utf-8");
+const FASTIFY_SERVER = ENV.FASTIFY_SERVER ?? ((fastify2) => fastify2);
+var serverless_default = FASTIFY_SERVER(
+  fastify({
+    logger: true,
+    ...ENV.FASTIFY_SERVER_OPTIONS?.()
+  })
+).register((fastify2) => {
+  fastify2.register(fastifyCookie, {
+    ...ENV.FASTIFY_COOKIE_OPTIONS?.()
+  }).register(fastifyFormbody, {
+    ...ENV.FASTIFY_FORMBODY_OPTIONS?.()
+  }).register(fastifyMultipart, {
+    attachFieldsToBody: "keyValues",
+    ...ENV.FASTIFY_MULTIPART_OPTIONS?.()
+  }).register(fastifyStatic, {
+    root: [["public"], ["dist", "browser"]].map((dir) => join(CWD, ...dir)),
+    prefix: "/",
+    wildcard: false,
+    ...ENV.FASTIFY_STATIC_OPTIONS?.()
+  }).decorateRequest("route", "").decorateRequest("path", "").addHook("onRequest", async (request) => {
+    const index = request.url.indexOf("?");
+    request.path = index === -1 ? request.url : request.url.slice(0, index);
+  }).all("*", async (request, reply) => {
+    try {
+      const payload = await handler(request, reply);
+      if (reply.getHeader("content-type") === void 0 && (typeof payload === "string" || Buffer.isBuffer(payload))) {
+        reply.type("text/html; charset=utf-8");
+      }
+      return payload;
+    } catch (error) {
+      console.error("\u274C", error);
+      throw error;
     }
-    return payload;
-  } catch (error) {
-    console.error("\u274C", error);
-    throw error;
-  }
+  });
 });
 const modules = /* @__PURE__ */ new Map();
 async function handler(request, reply) {
