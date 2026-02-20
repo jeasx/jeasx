@@ -1,5 +1,75 @@
 # Changelog
 
+## 2026-02-20 - Jeasx 2.4.0 released
+
+🎉 This release is both a step forward and a step back: the recently introduced support for MDX has been removed from the core project. Jeasx aims to keep its core as lean as possible, so this change aligns with the project's overall goals. Since MDX is not essential for every Jeasx website or application, it makes sense to move it out of the core.
+
+Another key goal of Jeasx is to empower users to implement their own custom solutions in userland, providing the right tools to do so. In short, while MDX remains a fantastic technology for content-driven websites, Jeasx now lets you configure MDX support yourself through a much improved configuration system for its base technologies like esbuild and Fastify.
+
+For esbuild, two new configuration options are available: `ESBUILD_SERVER_OPTIONS` and `ESBUILD_BROWSER_OPTIONS`. These can be defined as functions in `.env.js` that return additional configuration settings for esbuild.
+
+Why use functions instead of plain objects for the configuration? Because using functions allows configurations to be created lazily - only when needed - which is especially helpful for more complex setups over time.
+
+If you want to use MDX with Jeasx, simply run `npm install @mdx-js/esbuild` and add the configuration below to `ESBUILD_SERVER_OPTIONS` in `.env.js`.
+
+If you've used `ESBUILD_BROWSER_TARGET` in the past, you have to move this configuration to `ESBUILD_BROWSER_OPTIONS` as shown below.
+
+```jsx
+import mdx from "@mdx-js/esbuild";
+
+export default {
+  /** @type {() => import("esbuild").BuildOptions} */
+  ESBUILD_SERVER_OPTIONS: () => ({
+    plugins: [
+      mdx({
+        development: process.env.NODE_ENV === "development",
+        jsxImportSource: "jsx-async-runtime",
+        elementAttributeNameCase: "html",
+        stylePropertyNameCase: "css"
+      })
+    ]
+  }),
+
+  /** @type {() => import("esbuild").BuildOptions} */
+  ESBUILD_BROWSER_OPTIONS: () => ({
+    target: ["chrome130", "edge130", "firefox130", "safari18"]
+  })
+}
+```
+
+The existing configuration options for Fastify (such as `FASTIFY_SERVER_OPTIONS`, `FASTIFY_COOKIE_OPTIONS`, `FASTIFY_MULTIPART_OPTIONS`, `FASTIFY_STATIC_OPTIONS`) now require a minor change: they must be defined as functions instead of plain objects.
+
+Additionally, you can now customize the fastify server instance using the optional `FASTIFY_SERVER` function. This function receives the created server instance and should return the modified version. This feature is especially useful when integrating existing Fastify plugins like `@fastify/compress`, as demonstrated below.
+
+```jsx
+import fastifyCompress from "@fastify/compress";
+
+const NODE_ENV_IS_DEVELOPMENT = process.env.NODE_ENV === "development";
+
+export default {
+  /** @type {(fastify: import("fastify").FastifyInstance) => import("fastify").FastifyInstance} */
+  FASTIFY_SERVER: (fastify) => fastify.register(fastifyCompress),
+
+  /** @type {() => import("fastify").FastifyServerOptions} */
+  FASTIFY_SERVER_OPTIONS: () => ({
+    disableRequestLogging: NODE_ENV_IS_DEVELOPMENT,
+    bodyLimit: 1024 * 1024
+  }),
+
+  /** @type {() => import("@fastify/static").FastifyStaticOptions} */
+  FASTIFY_STATIC_OPTIONS: () => ({
+    immutable: !NODE_ENV_IS_DEVELOPMENT,
+    maxAge: NODE_ENV_IS_DEVELOPMENT ? 0 : "365d"
+  })
+};
+```
+
+Another notable change is that the fallback content-type (`text/html`) for routes is now set as late as possible. This means you can return plain JavaScript objects from routes, which will be automatically sent as `application/json` by default - without needing to explicitly specify the content-type in your code. This update brings Jeasx in line with Fastify’s default behavior.
+
+Additionally, you can now define routes directly from simple `*.json` or `*.txt` files - perfect for creating static endpoints like a health check or a `robots.txt` file right in your routes folder.
+
+Dependency updates: `@types/node@25.3.0`
+
 ## 2026-02-12 - Jeasx 2.3.2 released
 
 🎉 Upgraded to @types/node@25, enabling seamless development with Node 25 while maintaining compatibility for Node 24 users.
