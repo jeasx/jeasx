@@ -94,6 +94,9 @@ async function handler(request: FastifyRequest, reply: FastifyReply) {
   // Global context object for route handlers
   const context = {};
 
+  // Default props for route handler
+  const props = { request, reply };
+
   try {
     // Execute route handlers for current request
     for (const route of generateRoutes(request.path)) {
@@ -147,11 +150,7 @@ async function handler(request: FastifyRequest, reply: FastifyReply) {
       response =
         // Call functions with request, reply and optional props
         typeof module.default === "function"
-          ? await module.default.call(context, {
-              request,
-              reply,
-              ...(typeof response === "object" ? response : {}),
-            })
+          ? await module.default.call(context, props)
           : module.default; // otherwise return default export
 
       if (reply.sent) {
@@ -169,6 +168,8 @@ async function handler(request: FastifyRequest, reply: FastifyReply) {
         route.endsWith("/[...guard]") &&
         (response === undefined || typeof response === "object")
       ) {
+        // Add object entries from guard to props
+        Object.assign(props, response);
         continue;
       } else if (reply.statusCode === 404) {
         continue;

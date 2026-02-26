@@ -51,6 +51,7 @@ const modules = /* @__PURE__ */ new Map();
 async function handler(request, reply) {
   let response;
   const context = {};
+  const props = { request, reply };
   try {
     for (const route of generateRoutes(request.path)) {
       let module = modules.get(route);
@@ -87,11 +88,7 @@ async function handler(request, reply) {
       }
       request.route = route;
       response = // Call functions with request, reply and optional props
-      typeof module.default === "function" ? await module.default.call(context, {
-        request,
-        reply,
-        ...typeof response === "object" ? response : {}
-      }) : module.default;
+      typeof module.default === "function" ? await module.default.call(context, props) : module.default;
       if (reply.sent) {
         return;
       } else if (route.endsWith("/[404]")) {
@@ -102,6 +99,7 @@ async function handler(request, reply) {
       } else if (typeof response === "string" || Buffer.isBuffer(response) || isJSX(response)) {
         break;
       } else if (route.endsWith("/[...guard]") && (response === void 0 || typeof response === "object")) {
+        Object.assign(props, response);
         continue;
       } else if (reply.statusCode === 404) {
         continue;
