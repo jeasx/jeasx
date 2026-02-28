@@ -150,7 +150,7 @@ async function handler(request: FastifyRequest, reply: FastifyReply) {
       response =
         // Call functions with request, reply and optional props
         typeof module.default === "function"
-          ? await module.default.call(context, props)
+          ? await module.default.call(context, { ...props })
           : module.default; // otherwise return default export
 
       if (reply.sent) {
