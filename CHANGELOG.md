@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-03-02 - Jeasx 2.4.1 released
+
+🎉 This release introduces route prop inheritance from guards. Guards can return objects whose entries are used as additional props for your routes. Previously, only props from the closest guard were used. With this update, props from all guards along the route are collected and passed down. If multiple guards provide props with the same key, the value from the guard nearest to the route takes precedence and overwrites earlier ones.
+
+Dependency updates: `@types/node@25.3.3`
+
 ## 2026-02-20 - Jeasx 2.4.0 released
 
 🎉 This release is both a step forward and a step back: the recently introduced support for MDX has been removed from the core project. Jeasx aims to keep its core as lean as possible, so this change aligns with the project's overall goals. Since MDX is not essential for every Jeasx website or application, it makes sense to move it out of the core.
