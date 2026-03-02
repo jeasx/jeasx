@@ -87,8 +87,8 @@ async function handler(request, reply) {
         }
       }
       request.route = route;
-      response = // Call functions with request, reply and optional props
-      typeof module.default === "function" ? await module.default.call(context, { ...props }) : module.default;
+      response = // Call functions with 'this' context and props as parameters
+      typeof module.default === "function" ? await module.default.call(context, props) : module.default;
       if (reply.sent) {
         return;
       } else if (route.endsWith("/[404]")) {

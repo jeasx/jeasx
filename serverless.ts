@@ -94,7 +94,7 @@ async function handler(request: FastifyRequest, reply: FastifyReply) {
   // Global context object for route handlers
   const context = {};
 
-  // Default props for route handler
+  // Default props for route handlers
   const props = { request, reply };
 
   try {
@@ -148,9 +148,9 @@ async function handler(request: FastifyRequest, reply: FastifyReply) {
       request.route = route;
 
       response =
-        // Call functions with request, reply and optional props
+        // Call functions with 'this' context and props as parameters
         typeof module.default === "function"
-          ? await module.default.call(context, { ...props })
+          ? await module.default.call(context, props)
           : module.default; // otherwise return default export
 
       if (reply.sent) {
