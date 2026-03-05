@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-03-05 - Jeasx 2.4.2 released
+
+🎉 Just a patch release to update Fastify to fix [CVE-2026-3419](https://github.com/fastify/fastify/security/advisories/GHSA-573f-x89g-hqp9).
+
+Jeasx uses from now on [trusted publishing for npm packages](https://docs.npmjs.com/trusted-publishers) to release new versions.
+
+Dependency updates: `fastify@5.8.1`, `jsx-async-runtime@2.0.3`
+
 ## 2026-03-02 - Jeasx 2.4.1 released
 
 🎉 This release introduces route prop inheritance from guards. Guards can return objects whose entries are used as additional props for your routes. Previously, only props from the closest guard were used. With this update, props from all guards along the route are collected and passed down. If multiple guards provide props with the same key, the value from the guard nearest to the route takes precedence and overwrites earlier ones.
@@ -31,16 +39,16 @@ export default {
         development: process.env.NODE_ENV === "development",
         jsxImportSource: "jsx-async-runtime",
         elementAttributeNameCase: "html",
-        stylePropertyNameCase: "css"
-      })
-    ]
+        stylePropertyNameCase: "css",
+      }),
+    ],
   }),
 
   /** @type {() => import("esbuild").BuildOptions} */
   ESBUILD_BROWSER_OPTIONS: () => ({
-    target: ["chrome130", "edge130", "firefox130", "safari18"]
-  })
-}
+    target: ["chrome130", "edge130", "firefox130", "safari18"],
+  }),
+};
 ```
 
 The existing configuration options for Fastify (such as `FASTIFY_SERVER_OPTIONS`, `FASTIFY_COOKIE_OPTIONS`, `FASTIFY_MULTIPART_OPTIONS`, `FASTIFY_STATIC_OPTIONS`) now require a minor change: they must be defined as functions instead of plain objects.
@@ -59,14 +67,14 @@ export default {
   /** @type {() => import("fastify").FastifyServerOptions} */
   FASTIFY_SERVER_OPTIONS: () => ({
     disableRequestLogging: NODE_ENV_IS_DEVELOPMENT,
-    bodyLimit: 1024 * 1024
+    bodyLimit: 1024 * 1024,
   }),
 
   /** @type {() => import("@fastify/static").FastifyStaticOptions} */
   FASTIFY_STATIC_OPTIONS: () => ({
     immutable: !NODE_ENV_IS_DEVELOPMENT,
-    maxAge: NODE_ENV_IS_DEVELOPMENT ? 0 : "365d"
-  })
+    maxAge: NODE_ENV_IS_DEVELOPMENT ? 0 : "365d",
+  }),
 };
 ```
 
@@ -95,15 +103,12 @@ Dependency updates: `fastify@5.7.4`, `@types/node@24.10.10`
 🎉 This release introduces support for [MDX](https://mdxjs.com), enabling you to seamlessly embed JSX within Markdown content. Just create a route with a `.mdx` extension, and you’re all set to enhance your websites and blogs with Markdown enriched by dynamic JSX components.
 
 ```jsx
-import Layout from "./Layout"
+import Layout from "./Layout";
 
 <Layout title="MDX - Markdown for the component era">
-# MDX as content companion alongside JSX
-
-You can easily access existing `props` in MDX:
-
-- Current url: {props.request.url}
-</Layout>
+  # MDX as content companion alongside JSX You can easily access existing `props` in MDX: - Current
+  url: {props.request.url}
+</Layout>;
 ```
 
 You can also create MDX-based components for use within JSX by importing them with their full `.mdx` file extension into your JSX routes or components.
@@ -123,10 +128,10 @@ export default {
   /** @type import("@mdx-js/esbuild").Options */
   ESBUILD_MDX_OPTIONS: {
     remarkPlugins: [[remarkGFM, { singleTilde: false }]],
-    rehypePlugins: [rehypePrismPlus, [rehypeSlug, { prefix: "jeasx-" }]]
-  }
+    rehypePlugins: [rehypePrismPlus, [rehypeSlug, { prefix: "jeasx-" }]],
+  },
   //...
-}
+};
 ```
 
 For a full overview of available configuration options and plugins, check out the excellent documentation of [@mdx-js/esbuild](https://mdxjs.com/packages/esbuild).
@@ -136,9 +141,9 @@ For a full overview of available configuration options and plugins, check out th
 ```js
 export default {
   /** @type import("esbuild").BuildOptions["target"] */
-  ESBUILD_BROWSER_TARGET: ["chrome130", "edge130", "firefox130", "safari18"]
+  ESBUILD_BROWSER_TARGET: ["chrome130", "edge130", "firefox130", "safari18"],
   //...
-}
+};
 ```
 
 Dependency updates: `fastify@5.7.2`, `@fastify/multipart@9.4.0`
@@ -226,10 +231,7 @@ import { gzip } from "node:zlib";
 
 export default function ({ request, reply }) {
   this.responseHandler = (payload) => {
-    if (
-      typeof payload === "string" &&
-      request.headers["accept-encoding"]?.includes("gzip")
-    ) {
+    if (typeof payload === "string" && request.headers["accept-encoding"]?.includes("gzip")) {
       reply.header("content-encoding", "gzip");
       return promisify(gzip)(payload);
     } else {
@@ -324,7 +326,7 @@ This change makes the required code for handling form body requests much easier:
 ```js
 // Change this code...
 const file = await request.file();
-const upload = await file.toBuffer()
+const upload = await file.toBuffer();
 const format = file.fields["format"]["value"];
 
 // ... to this code.
@@ -352,7 +354,7 @@ To set up an error handler, simply register it in a route of your choice:
 this.errorHandler = async (error) => {
   console.error("❌", error);
   return <h1>Internal error</h1>;
-}
+};
 ```
 
 An error handler is called with this as context, allowing easy access to your context setup.
