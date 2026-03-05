@@ -1,0 +1,46 @@
+name: Publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version bump"
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  release:
+    runs-on: ubuntu-slim
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+
+      - name: Configure git
+        run: |
+          git config user.name "Maik Jablonski"
+          git config user.email "mail@jeasx.dev"
+
+      - run: npm ci
+      - run: npm run build
+
+      - run: npm version ${{ inputs.version }}
+      - run: git push --follow-tags
+
+      - run: npm publish
+
+      - name: Create GitHub release
+        run: gh release create "v$(node -p 'require("./package.json").version')" --generate-notes
+        env:
+          GH_TOKEN: ${{ github.token }}
