@@ -3,6 +3,8 @@
   "version": "2.4.1",
   "description": "Jeasx - the ease of JSX with the power of SSR",
   "keywords": [
+    "async",
+    "esbuild",
     "fastify",
     "jsx",
     "node",
