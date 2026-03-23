@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-03-23 - Jeasx 2.4.4 released
+
+🎉 Just a patch release to update Fastify to fix [CVE-2026-3635](https://github.com/fastify/fastify/security/advisories/GHSA-444r-cwp2-x5xf).
+
+Dependency updates: `fastify@5.8.4`
+
 ## 2026-03-14 - Jeasx 2.4.3 released
 
 🎉 Just some dependency updates...
