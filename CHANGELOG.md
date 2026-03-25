@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-03-25 - Jeasx 2.4.5 released
+
+🎉 Just a patch update to stay synced with latest `jsx-async-runtime`.
+
+Dependency updates: `jsx-async-runtime@2.1.0`
+
 ## 2026-03-23 - Jeasx 2.4.4 released
 
 🎉 Just a patch release to update Fastify to fix [CVE-2026-3635](https://github.com/fastify/fastify/security/advisories/GHSA-444r-cwp2-x5xf).
