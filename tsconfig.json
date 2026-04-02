@@ -3,6 +3,9 @@
     "module": "esnext",
     "moduleResolution": "bundler",
     "target": "esnext",
+    "types": ["*"],
+    "strict": false,
+    "rootDir": "../../src",
     "outDir": "../../dist",
     "allowJs": true,
     "checkJs": true,
@@ -13,5 +16,6 @@
     "isolatedModules": true,
     "resolveJsonModule": true
   },
+  "include": ["../../src"],
   "exclude": ["../../dist"]
 }
