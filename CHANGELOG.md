@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-04-02 - Jeasx 2.4.6 released
+
+🎉 This release updates the `tsconfig.json` settings to fully support the latest TypeScript 6 changes. Now, the latest version of VSCode runs smoothly without any warnings.
+
+Dependency updates: `esbuild@0.27.7`
+
 ## 2026-03-25 - Jeasx 2.4.5 released
 
 🎉 Just a patch update to stay synced with latest `jsx-async-runtime`.
