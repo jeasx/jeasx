@@ -4,7 +4,7 @@
 
 🎉 Just some dependency updates...
 
-Dependency updates: `esbuild@0.28.0`, `@types/node@25.5.2`
+Dependency updates: `jsx-async-runtime@2.1.1`, `esbuild@0.28.0`, `@types/node@25.5.2`
 
 ## 2026-04-02 - Jeasx 2.4.6 released
 
