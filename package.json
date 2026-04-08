@@ -31,8 +31,8 @@
   "dependencies": {
     "@fastify/cookie": "11.0.2",
     "@fastify/formbody": "8.0.2",
-    "@fastify/multipart": "9.4.0",
-    "@fastify/static": "9.0.0",
+    "@fastify/multipart": "10.0.0",
+    "@fastify/static": "9.1.0",
     "@types/node": "25.5.2",
     "esbuild": "0.28.0",
     "fastify": "5.8.4",
