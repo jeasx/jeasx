@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-04-09 - Jeasx 2.4.8 released
+
+🎉 Just some dependency updates...
+
+Dependency updates: `@fastify/multipart@10.0.0`, `@fastify/static@9.1.0`
+
 ## 2026-04-04 - Jeasx 2.4.7 released
 
 🎉 Just some dependency updates...
