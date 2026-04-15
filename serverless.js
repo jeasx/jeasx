@@ -39,7 +39,7 @@ var serverless_default = FASTIFY_SERVER(
       }
       return payload;
     } catch (error) {
-      console.error("\u274C", error);
+      request.log.error(error);
       throw error;
     }
   });

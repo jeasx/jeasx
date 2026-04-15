@@ -73,7 +73,7 @@ export default FASTIFY_SERVER(
           }
           return payload;
         } catch (error) {
-          console.error("❌", error);
+          request.log.error(error);
           throw error;
         }
       });
