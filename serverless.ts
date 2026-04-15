@@ -52,7 +52,6 @@ export default FASTIFY_SERVER(
       })
       .register(fastifyStatic, {
         root: [["public"], ["dist", "browser"]].map((dir) => join(CWD, ...dir)),
-        prefix: "/",
         wildcard: false,
         ...(ENV.FASTIFY_STATIC_OPTIONS?.() as FastifyStaticOptions),
       })

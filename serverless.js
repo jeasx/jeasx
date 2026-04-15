@@ -26,7 +26,6 @@ var serverless_default = FASTIFY_SERVER(
     ...ENV.FASTIFY_MULTIPART_OPTIONS?.()
   }).register(fastifyStatic, {
     root: [["public"], ["dist", "browser"]].map((dir) => join(CWD, ...dir)),
-    prefix: "/",
     wildcard: false,
     ...ENV.FASTIFY_STATIC_OPTIONS?.()
   }).decorateRequest("route", "").decorateRequest("path", "").addHook("onRequest", async (request) => {
