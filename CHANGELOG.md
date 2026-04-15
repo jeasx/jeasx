@@ -1,5 +1,35 @@
 # Changelog
 
+## 2026-04-15 - Jeasx 2.5.0 released
+
+🎉 This release removes all non-essential Fastify configuration options from the Jeasx core, aligning it more closely with Fastify’s well-chosen default settings.
+
+To maintain your previous behavior, I recommend making minor adjustments to your configuration via `.env.js`:
+
+```js
+export default {
+  // ...
+
+  FASTIFY_SERVER_OPTIONS: () => ({
+    logger: { level: process.env.NODE_ENV === "development" ? "error" : "info" },
+    // 'disableRequestLogging' should be removed.
+  }),
+
+  FASTIFY_MULTIPART_OPTIONS: () => ({
+    // Only relevant if you use file uploads in your project.
+    attachFieldsToBody: "keyValues",
+  }),
+
+  // ...
+};
+```
+
+Additionally, the configured Fastify logger is now used for error logging, replacing the previous use of `console.error`.
+
+This release also addresses [CVE-2026-33806](https://github.com/fastify/fastify/security/advisories/GHSA-247c-9743-5963) by upgrading to the latest Fastify version.
+
+Dependency updates: `fastify@5.8.5`, `@types/node@25.6.0`
+
 ## 2026-04-09 - Jeasx 2.4.8 released
 
 🎉 Just some dependency updates...
