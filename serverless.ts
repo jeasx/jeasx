@@ -35,7 +35,6 @@ const FASTIFY_SERVER = (ENV.FASTIFY_SERVER ?? ((fastify) => fastify)) as (
 // Create and export a Fastify instance
 export default FASTIFY_SERVER(
   fastify({
-    logger: true,
     ...(ENV.FASTIFY_SERVER_OPTIONS?.() as FastifyServerOptions),
   }),
 )
@@ -49,7 +48,6 @@ export default FASTIFY_SERVER(
         ...(ENV.FASTIFY_FORMBODY_OPTIONS?.() as FastifyFormbodyOptions),
       })
       .register(fastifyMultipart, {
-        attachFieldsToBody: "keyValues",
         ...(ENV.FASTIFY_MULTIPART_OPTIONS?.() as FastifyMultipartOptions),
       })
       .register(fastifyStatic, {

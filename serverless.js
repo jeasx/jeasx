@@ -15,7 +15,6 @@ const JEASX_ROUTE_CACHE_LIMIT = Math.floor(freemem() / 1024 / 1024);
 const FASTIFY_SERVER = ENV.FASTIFY_SERVER ?? ((fastify2) => fastify2);
 var serverless_default = FASTIFY_SERVER(
   fastify({
-    logger: true,
     ...ENV.FASTIFY_SERVER_OPTIONS?.()
   })
 ).register((fastify2) => {
@@ -24,7 +23,6 @@ var serverless_default = FASTIFY_SERVER(
   }).register(fastifyFormbody, {
     ...ENV.FASTIFY_FORMBODY_OPTIONS?.()
   }).register(fastifyMultipart, {
-    attachFieldsToBody: "keyValues",
     ...ENV.FASTIFY_MULTIPART_OPTIONS?.()
   }).register(fastifyStatic, {
     root: [["public"], ["dist", "browser"]].map((dir) => join(CWD, ...dir)),
