@@ -23,7 +23,7 @@ switch (process.argv[2]) {
     break;
 
   default:
-    console.info(`❌ Error: Unknown command '${process.argv[2]}'.\nUse 'jeasx help' for options.`);
+    console.error(`❌ Error: Unknown command '${process.argv[2]}'.\nUse 'jeasx help' for options.`);
     process.exit(1);
 }
 
