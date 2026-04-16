@@ -1,6 +1,12 @@
 # Changelog
 
-## 2026-04-15 - Jeasx 2.5.0 released
+## 2026-04-16 - Jeasx 2.5.1 released
+
+🎉 Upgrade to latest `@fastify/static` to fix [CVE-2026-6410](https://github.com/fastify/fastify-static/security/advisories/GHSA-pr96-94w5-mx2h) and [CVE-2026-6414](https://github.com/fastify/fastify-static/security/advisories/GHSA-x428-ghpx-8j92).
+
+Dependency updates: `@fastify/static@9.1.1`
+
+## 2026-04-15 - Jeasx 2.5.0 released]()
 
 🎉 This release removes all non-essential Fastify configuration options from the Jeasx core, aligning it more closely with Fastify’s well-chosen default settings.
 
