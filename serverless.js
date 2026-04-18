@@ -72,9 +72,17 @@ async function handler(request, reply) {
             module = await import(`file://${modulePath}`);
             modules.set(route, module);
           }
-        } catch {
-          if (!NODE_ENV_IS_DEVELOPMENT) {
-            modules.set(route, null);
+        } catch (e) {
+          if (
+            /* Node */
+            e.code === "ENOENT" || /* Bun */
+            e.code === "ERR_MODULE_NOT_FOUND"
+          ) {
+            if (!NODE_ENV_IS_DEVELOPMENT) {
+              modules.set(route, null);
+            }
+          } else {
+            throw e;
           }
           continue;
         } finally {
