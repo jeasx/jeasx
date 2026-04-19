@@ -6,7 +6,7 @@
 
 Dependency updates: `@fastify/static@9.1.1`
 
-## 2026-04-15 - Jeasx 2.5.0 released]()
+## 2026-04-15 - Jeasx 2.5.0 released
 
 🎉 This release removes all non-essential Fastify configuration options from the Jeasx core, aligning it more closely with Fastify’s well-chosen default settings.
 
