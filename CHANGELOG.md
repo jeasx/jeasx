@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-04-24 - Jeasx 2.5.3 released
+
+🎉 Just dependency updates...
+
+Dependency updates: `@fastify/static@9.1.3`
+
 ## 2026-04-20 - Jeasx 2.5.2 released
 
 🎉 This release resolves an issue where existing routes failed to load if a JavaScript error occurred during initialization (for example, when setting up a global scoped variable). Previously, this error was masked by returning a 404 route, causing the route to never be re-evaluated.
