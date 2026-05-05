@@ -12,7 +12,7 @@ const BROWSER_PUBLIC_ENV = Object.keys(ENV)
       env[`process.env.${key}`] = `"${ENV[key]}"`;
       return env;
     },
-    { "process.env.BROWSER_PUBLIC_BUILD_TIME": BUILD_TIME },
+    Object({ "process.env.BROWSER_PUBLIC_BUILD_TIME": BUILD_TIME }),
   );
 
 /** @type esbuild.BuildOptions[] */
