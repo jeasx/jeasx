@@ -19,9 +19,7 @@ const BROWSER_PUBLIC_ENV = Object.keys(ENV)
 const buildOptions = [
   {
     entryPoints: ["src/**/[*].*"],
-    define: {
-      "process.env.BUILD_TIME": BUILD_TIME,
-    },
+    define: { "process.env.BUILD_TIME": BUILD_TIME },
     minify: process.env.NODE_ENV !== "development",
     logLevel: "info",
     color: true,
@@ -30,6 +28,7 @@ const buildOptions = [
     sourcesContent: false,
     outdir: "dist/server",
     platform: "neutral",
+    format: "esm",
     packages: "external",
     ...ENV.ESBUILD_SERVER_OPTIONS?.(),
   },
@@ -45,21 +44,6 @@ const buildOptions = [
     outdir: "dist/browser",
     platform: "browser",
     format: "esm",
-    target: ["chrome130", "edge130", "firefox130", "safari18"],
-    external: [
-      "*.avif",
-      "*.gif",
-      "*.jpg",
-      "*.jpeg",
-      "*.png",
-      "*.svg",
-      "*.webp",
-      "*.eot",
-      "*.ttf",
-      "*.otf",
-      "*.woff",
-      "*.woff2",
-    ],
     ...ENV.ESBUILD_BROWSER_OPTIONS?.(),
   },
 ];
