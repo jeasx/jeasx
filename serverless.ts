@@ -18,7 +18,7 @@ const ENV = await env();
 
 const CWD = process.cwd();
 const NODE_ENV_IS_DEVELOPMENT = process.env.NODE_ENV === "development";
-const JEASX_ROUTE_CACHE_LIMIT = Math.floor(freemem() / 1024 / 1024);
+const ROUTE_CACHE_LIMIT = Math.floor(freemem() / 1024 / 1024);
 
 declare module "fastify" {
   interface FastifyRequest {
@@ -51,8 +51,9 @@ export default FASTIFY_SERVER(
         ...(ENV.FASTIFY_MULTIPART_OPTIONS?.() as FastifyMultipartOptions),
       })
       .register(fastifyStatic, {
-        root: [["public"], ["dist", "browser"]].map((dir) => join(CWD, ...dir)),
+        root: ["public", "dist"].map((dir) => join(CWD, dir)),
         wildcard: false,
+        globIgnore: ["/**/\\[*\\].js?(.map)"], // ignore server routes
         ...(ENV.FASTIFY_STATIC_OPTIONS?.() as FastifyStaticOptions),
       })
       .decorateRequest("route", "")
@@ -108,7 +109,7 @@ async function handler(request: FastifyRequest, reply: FastifyReply) {
       // Module was not loaded yet?
       if (module === undefined) {
         try {
-          const modulePath = join(CWD, "dist", "server", `${route}.js`);
+          const modulePath = join(CWD, "dist", `${route}.js`);
           if (NODE_ENV_IS_DEVELOPMENT) {
             if (typeof require === "function") {
               // Bun: Remove module from cache before importing
@@ -128,19 +129,22 @@ async function handler(request: FastifyRequest, reply: FastifyReply) {
             modules.set(route, module);
           }
         } catch (e) {
-          if (/* Node */ e.code === "ENOENT" || /* Bun */ e.code === "ERR_MODULE_NOT_FOUND") {
-            if (!NODE_ENV_IS_DEVELOPMENT) {
-              // Cache module as not found
-              modules.set(route, null);
-            }
-          } else {
-            // Module exists, but fails to load.
-            throw e;
+          switch (e.code) {
+            case "ENOENT":
+            case "ENOTDIR":
+            case "ERR_MODULE_NOT_FOUND":
+              if (!NODE_ENV_IS_DEVELOPMENT) {
+                // Cache module as not found
+                modules.set(route, null);
+              }
+              continue;
+            default:
+              // Module exists, but fails to load.
+              throw e;
           }
-          continue;
         } finally {
           // Remove oldest entry from cache if limit is reached
-          if (modules.size > JEASX_ROUTE_CACHE_LIMIT) {
+          if (modules.size > ROUTE_CACHE_LIMIT) {
             modules.delete(modules.keys().next().value);
           }
         }

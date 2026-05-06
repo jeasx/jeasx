@@ -11,7 +11,7 @@ import env from "./env.js";
 const ENV = await env();
 const CWD = process.cwd();
 const NODE_ENV_IS_DEVELOPMENT = process.env.NODE_ENV === "development";
-const JEASX_ROUTE_CACHE_LIMIT = Math.floor(freemem() / 1024 / 1024);
+const ROUTE_CACHE_LIMIT = Math.floor(freemem() / 1024 / 1024);
 const FASTIFY_SERVER = ENV.FASTIFY_SERVER ?? ((fastify2) => fastify2);
 var serverless_default = FASTIFY_SERVER(
   fastify({
@@ -25,8 +25,10 @@ var serverless_default = FASTIFY_SERVER(
   }).register(fastifyMultipart, {
     ...ENV.FASTIFY_MULTIPART_OPTIONS?.()
   }).register(fastifyStatic, {
-    root: [["public"], ["dist", "browser"]].map((dir) => join(CWD, ...dir)),
+    root: ["public", "dist"].map((dir) => join(CWD, dir)),
     wildcard: false,
+    globIgnore: ["/**/\\[*\\].js?(.map)"],
+    // ignore server routes
     ...ENV.FASTIFY_STATIC_OPTIONS?.()
   }).decorateRequest("route", "").decorateRequest("path", "").addHook("onRequest", async (request) => {
     const index = request.url.indexOf("?");
@@ -57,7 +59,7 @@ async function handler(request, reply) {
       }
       if (module === void 0) {
         try {
-          const modulePath = join(CWD, "dist", "server", `${route}.js`);
+          const modulePath = join(CWD, "dist", `${route}.js`);
           if (NODE_ENV_IS_DEVELOPMENT) {
             if (typeof require === "function") {
               if (require.cache[modulePath]) {
@@ -73,20 +75,19 @@ async function handler(request, reply) {
             modules.set(route, module);
           }
         } catch (e) {
-          if (
-            /* Node */
-            e.code === "ENOENT" || /* Bun */
-            e.code === "ERR_MODULE_NOT_FOUND"
-          ) {
-            if (!NODE_ENV_IS_DEVELOPMENT) {
-              modules.set(route, null);
-            }
-          } else {
-            throw e;
+          switch (e.code) {
+            case "ENOENT":
+            case "ENOTDIR":
+            case "ERR_MODULE_NOT_FOUND":
+              if (!NODE_ENV_IS_DEVELOPMENT) {
+                modules.set(route, null);
+              }
+              continue;
+            default:
+              throw e;
           }
-          continue;
         } finally {
-          if (modules.size > JEASX_ROUTE_CACHE_LIMIT) {
+          if (modules.size > ROUTE_CACHE_LIMIT) {
             modules.delete(modules.keys().next().value);
           }
         }
