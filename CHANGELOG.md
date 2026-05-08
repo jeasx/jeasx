@@ -37,7 +37,6 @@ ESBUILD_BROWSER_OPTIONS: () => ({
     "*.woff",
     "*.woff2",
   ],
-
   target: ["chrome130", "edge130", "firefox130", "safari18"],
 });
 ```
