@@ -73,7 +73,7 @@ declare module "*.jpg" {
 }
 ```
 
-Dependency updates: `@types/node@25.6.2`
+Dependency updates: `jsx-async-runtime@2.1.2`, `@types/node@25.6.2`
 
 ## 2026-04-24 - Jeasx 2.5.3 released
 
