@@ -2,15 +2,17 @@
 
 ## 2026-05-.. - Jeasx 2.6.0 released
 
-🎉 Since the release of Jeasx 1.9, you’ve been able to structure your application freely - no more rigid separation between browser and server code in dedicated folders. While you could choose your project layout in `src`, the `dist` directory still enforced a separation between browser and server code. This led to a serious limitation: [esbuild loader](https://esbuild.github.io/api/#loader) (e.g., importing files, using CSS modules, ...) couldn’t be utilized in server routes because assets generated for the server and stored in `dist/server` couldn’t be loaded by the browser.
+🎉 Back in the early days, Jeasx enforced a strict separation between browser and server code. This meant developers had to organize their projects into specific directories like `browser` and `routes`. Over time, this limitation was lifted, allowing for more flexible project structures. While you could freely arrange your application code in the `src` directory, the `dist` directory still maintained the separation between browser and server files.
 
-Now, everything in the `dist` folder is organized exactly as you’ve structured your application, sub-directories for `browser` and `server` are gone for good. All files in the `dist` directory are delivered directly to the browser via `@fastify/static`, except the code for server routes (JavaScript files enclosed in square brackets) - this code is still handled on the server.
+This created a significant challenge: [esbuild loaders](https://esbuild.github.io/api/#loader) (such as those for importing files or using CSS modules) couldn’t be applied to server routes. The reason? Assets generated for the server and stored in `dist/server` were inaccessible to the browser, making it impossible to leverage these powerful tools in server-side code.
+
+Here are the good news: everything in the `dist` folder is now organized exactly as you’ve structured your application, hard coded sub-directories for `browser` and `server` are gone for good. All files in the `dist` directory are delivered directly to the browser via `@fastify/static`, except the code for server routes (JavaScript files enclosed in square brackets) - this code is still handled on the server. Now you are free to utilize esbuild loaders for your routes and enjoy all the advanced esbuild configurations for bundling server side code.
 
 ### ⚠️ Required updates to `.env.js`
 
-Previously, common browser asset extensions (e.g., `.ttf, .woff2, .svg, .jpg`) were automatically treated as `external` by esbuild. This meant they were excluded from the bundling process. For example, font files or icons stored in the public directory and referenced in your CSS files would not be processed by esbuild.
+Previously, common browser asset extensions (e.g., `.ttf, .woff2, .svg, .jpg`) were automatically treated as `external` by Jeasx. This meant they were excluded from the bundling process by esbuild. For example, font files or icons stored in the `public` directory and referenced in your bundled CSS files would not be processed by esbuild.
 
-Now, no extensions are marked as external by default. If your build fails with an error like `ERROR: No loader is configured for ".woff2"`, you’ll need to explicitly mark the missing extensions as `external` in your `.env.js` configuration by updating the `ESBUILD_BROWSER_OPTIONS`.
+Now, no extensions are marked as `external` by default anymore. If your build fails with an error like `ERROR: No loader is configured for ".woff2"`, you’ll need to explicitly mark the missing extensions as `external` in your `.env.js` configuration by updating the `ESBUILD_BROWSER_OPTIONS`.
 
 Also Jeasx no longer sets a default value for the esbuild `target` option. I recommend configuring it explicitly based on your project’s needs. If you don’t specify a value, esbuild will default to `esnext`.
 
@@ -49,7 +51,7 @@ ESBUILD_SERVER_OPTIONS: () => ({
 });
 ```
 
-You can now import an image located next to your server route and use it directly. Esbuild automatically hashes the image path, so you don’t need to manually update references - even with caching headers applied.
+You can now import an image located next to your server route and reference it in your code. This way esbuild automatically hashes the image path, so you don’t need to manually update references - even with caching headers applied.
 
 ```jsx
 import Image from "./image.jpg";
