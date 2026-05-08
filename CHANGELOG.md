@@ -1,5 +1,75 @@
 # Changelog
 
+## 2026-05-.. - Jeasx 2.6.0 released
+
+🎉 Since the release of Jeasx 1.9, you’ve been able to structure your application freely - no more rigid separation between browser and server code in dedicated folders. While you could choose your project layout in `src`, the `dist` directory still enforced a separation between browser and server code. This led to a serious limitation: [esbuild loader](https://esbuild.github.io/api/#loader) (e.g., importing files, using CSS modules, ...) couldn’t be utilized in server routes because assets generated for the server and stored in `dist/server` couldn’t be loaded by the browser.
+
+Now, everything in the `dist` folder is organized exactly as you’ve structured your application, sub-directories for `browser` and `server` are gone for good. All files in the `dist` directory are delivered directly to the browser via `@fastify/static`, except the code for server routes (JavaScript files enclosed in square brackets) - this code is still handled on the server.
+
+### ⚠️ Required updates to `.env.js`
+
+Previously, common browser asset extensions (e.g., `.ttf, .woff2, .svg, .jpg`) were automatically treated as external by esbuild. This meant they were excluded from the bundling process. For example, font files or icons stored in the public directory and referenced in your CSS files would not be processed by esbuild.
+
+Now, no extensions are marked as external by default. If your build fails with an error like `ERROR: No loader is configured for ".woff2"`, you’ll need to explicitly mark the missing extensions as `external` in your `.env.js` configuration by updating the `ESBUILD_BROWSER_OPTIONS` to make your project work again.
+
+Also Jeasx no longer sets a default value for the esbuild `target` option. We recommend configuring it explicitly based on your project’s needs. If you don’t specify a value, esbuild will default to `esnext`.
+
+The example below restores the former esbuild settings used by Jeasx, ensuring a smooth transition to the current release.
+
+```js
+/** @type {() => import("esbuild").BuildOptions} */
+ESBUILD_BROWSER_OPTIONS: () => ({
+  // It’s best to start with an empty list and
+  // only add extensions that cause build errors.
+  external: [
+    "*.avif",
+    "*.gif",
+    "*.jpg",
+    "*.jpeg",
+    "*.png",
+    "*.svg",
+    "*.webp",
+    "*.eot",
+    "*.ttf",
+    "*.otf",
+    "*.woff",
+    "*.woff2",
+  ],
+
+  target: ["chrome130", "edge130", "firefox130", "safari18"],
+});
+```
+
+After the update, you should start using the [esbuild loader](https://esbuild.github.io/api/#loader) to handle assets. To help you get started, here’s an example of how you can import images directly in your server routes. Simply configure the `file` loader for `.jpg` files in your `.env.js` file:
+
+```js
+/** @type {() => import("esbuild").BuildOptions} */
+ESBUILD_SERVER_OPTIONS: () => ({
+  loader: { ".jpg": "file" },
+});
+```
+
+You can now import an image located next to your server route and use it directly. Esbuild automatically hashes the image path, so you don’t need to manually update references - even with caching headers applied.
+
+```jsx
+import Image from "./image.jpg";
+
+export default function () {
+  return <img src={Image} alt="" />;
+}
+```
+
+If you encounter a TypeScript warning for the import, you can resolve it by adding a definition file (e.g., `jpg.d.ts`) to specify the correct typing.
+
+```ts
+declare module "*.jpg" {
+  const content: string;
+  export default content;
+}
+```
+
+Dependency updates: `@types/node@25.6.2`
+
 ## 2026-04-24 - Jeasx 2.5.3 released
 
 🎉 Just dependency updates...
