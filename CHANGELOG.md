@@ -8,11 +8,11 @@ Now, everything in the `dist` folder is organized exactly as you’ve structured
 
 ### ⚠️ Required updates to `.env.js`
 
-Previously, common browser asset extensions (e.g., `.ttf, .woff2, .svg, .jpg`) were automatically treated as external by esbuild. This meant they were excluded from the bundling process. For example, font files or icons stored in the public directory and referenced in your CSS files would not be processed by esbuild.
+Previously, common browser asset extensions (e.g., `.ttf, .woff2, .svg, .jpg`) were automatically treated as `external` by esbuild. This meant they were excluded from the bundling process. For example, font files or icons stored in the public directory and referenced in your CSS files would not be processed by esbuild.
 
-Now, no extensions are marked as external by default. If your build fails with an error like `ERROR: No loader is configured for ".woff2"`, you’ll need to explicitly mark the missing extensions as `external` in your `.env.js` configuration by updating the `ESBUILD_BROWSER_OPTIONS` to make your project work again.
+Now, no extensions are marked as external by default. If your build fails with an error like `ERROR: No loader is configured for ".woff2"`, you’ll need to explicitly mark the missing extensions as `external` in your `.env.js` configuration by updating the `ESBUILD_BROWSER_OPTIONS`.
 
-Also Jeasx no longer sets a default value for the esbuild `target` option. We recommend configuring it explicitly based on your project’s needs. If you don’t specify a value, esbuild will default to `esnext`.
+Also Jeasx no longer sets a default value for the esbuild `target` option. I recommend configuring it explicitly based on your project’s needs. If you don’t specify a value, esbuild will default to `esnext`.
 
 The example below restores the former esbuild settings used by Jeasx, ensuring a smooth transition to the current release.
 
@@ -55,7 +55,11 @@ You can now import an image located next to your server route and use it directl
 import Image from "./image.jpg";
 
 export default function () {
-  return <img src={Image} alt="" />;
+  return (
+    <figure>
+      <img src={Image} alt="Example image" />
+    </figure>
+  );
 }
 ```
 
