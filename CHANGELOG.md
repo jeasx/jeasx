@@ -6,7 +6,7 @@
 
 This created a significant challenge: [esbuild loaders](https://esbuild.github.io/api/#loader) (such as those for importing files or using CSS modules) couldn’t be applied to server routes. The reason? Assets generated for the server and stored in `dist/server` were inaccessible to the browser, making it impossible to leverage these powerful tools in server-side code.
 
-Here are the good news: everything in the `dist` folder is now organized exactly as you’ve structured your application, hard coded sub-directories for `browser` and `server` are gone for good. All files in the `dist` directory are delivered directly to the browser via `@fastify/static`, except the code for server routes (JavaScript files enclosed in square brackets) - this code is still handled on the server. Now you are free to utilize esbuild loaders for your routes and enjoy all the advanced esbuild configurations for bundling server side code.
+Here are the good news: everything in the `dist` folder is now organized exactly as you’ve structured your application, hard coded sub-directories for `browser` and `server` are gone for good. All files in the `dist` directory are delivered directly to the browser via `@fastify/static`, except the code for server routes (JavaScript files enclosed in square brackets) - this code is still handled on the server. Now you are free to utilize esbuild loaders for your routes and enjoy all the advanced esbuild configurations for bundling server-side code.
 
 ### ⚠️ Required updates to `.env.js`
 
