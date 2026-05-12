@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-05-12 - Jeasx 2.6.1 released
+
+🎉 This release includes a small update to the `tsconfig.json` file: The `types` attribute has been adjusted from `["*"]` to `["node"]` to align with the TypeScript team’s best practices. This change ensures better type resolution and resolves a warning that appeared when using Zed as the editor.
+
+Dependency updates: `@types/node@25.7.0`
+
 ## 2026-05-08 - Jeasx 2.6.0 released
 
 🎉 Back in the early days, Jeasx enforced a strict separation between browser and server code. This meant developers had to organize their projects into specific directories like `browser` and `routes`. Over time, this limitation was lifted, allowing for more flexible project structures. While you could freely arrange your application code in the `src` directory, the `dist` directory still maintained the separation between browser and server files.
