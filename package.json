@@ -26,7 +26,7 @@
   "type": "module",
   "main": "server.js",
   "scripts": {
-    "build": "esbuild --platform=node --format=esm --sourcemap=linked --sources-content=false --outdir=. serverless.ts"
+    "build": "esbuild --platform=node --format=esm --sourcemap=inline --sources-content=false --outdir=. serverless.ts"
   },
   "dependencies": {
     "@fastify/cookie": "11.0.2",
