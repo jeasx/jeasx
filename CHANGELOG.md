@@ -12,7 +12,6 @@ Please study the [esbuild documentation](https://esbuild.github.io/api/#sourcema
 /** @type {() => import("esbuild").BuildOptions} */
 ESBUILD_SERVER_OPTIONS: () => ({
   sourcemap: "inline",
-  sourcesContent: true,
 });
 ```
 
