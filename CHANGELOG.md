@@ -1,5 +1,21 @@
 # Changelog
 
+## 2026-05-14 - Jeasx 2.6.2 released
+
+🎉 This release moves the configuration for esbuild’s sourcemap settings from core to userland. Since there is no universal default that fits all environments and policies, this change allows for greater flexibility.
+
+To enable sourcemaps for debugging your code, configure `ESBUILD_SERVER_OPTIONS` or `ESBUILD_BROWSER_OPTIONS` in your `.env.js` file based on your specific needs. While I recommend using `inline` as the configuration value for simplicity, the optimal choice may depend on your setup and tooling.
+
+Please study the [esbuild documentation](https://esbuild.github.io/api/#sourcemap) for the different configuration options.
+
+```js
+/** @type {() => import("esbuild").BuildOptions} */
+ESBUILD_SERVER_OPTIONS: () => ({
+  sourcemap: "inline",
+  sourcesContent: true,
+});
+```
+
 ## 2026-05-12 - Jeasx 2.6.1 released
 
 🎉 This release includes a small update to the `tsconfig.json` file: The `types` attribute has been adjusted from `["*"]` to `["node"]` to align with the TypeScript team’s best practices. This change ensures better type resolution and resolves a warning that appeared when using Zed as the editor.
