@@ -1,15 +1,17 @@
 import * as esbuild from "esbuild";
+import { join } from "node:path";
 import env from "./env.js";
 
-const ENV = await env();
+env();
 
-const BUILD_TIME = `"${ENV.BUILD_TIME || Date.now().toString(36)}"`;
+const CONFIG = (await import(`file://${join(process.cwd(), "jeasx.config.js")}`)).default;
+const BUILD_TIME = `"${process.env.BUILD_TIME || Date.now().toString(36)}"`;
 
-const BROWSER_PUBLIC_ENV = Object.keys(ENV)
+const BROWSER_PUBLIC_ENV = Object.keys(process.env)
   .filter((key) => key.startsWith("BROWSER_PUBLIC_"))
   .reduce(
     (env, key) => {
-      env[`process.env.${key}`] = `"${ENV[key]}"`;
+      env[`process.env.${key}`] = `"${process.env[key]}"`;
       return env;
     },
     Object({ "process.env.BROWSER_PUBLIC_BUILD_TIME": BUILD_TIME }),
@@ -30,7 +32,7 @@ const buildOptions = [
     platform: "neutral",
     format: "esm",
     packages: "external",
-    ...ENV.ESBUILD_SERVER_OPTIONS?.(),
+    ...CONFIG.ESBUILD_SERVER_OPTIONS?.(),
   },
   {
     entryPoints: ["src/**/index.*"],
@@ -44,7 +46,7 @@ const buildOptions = [
     assetNames: "[dir]/[name]-[hash]",
     platform: "browser",
     format: "esm",
-    ...ENV.ESBUILD_BROWSER_OPTIONS?.(),
+    ...CONFIG.ESBUILD_BROWSER_OPTIONS?.(),
   },
 ];
 

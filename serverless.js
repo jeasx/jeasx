@@ -8,28 +8,28 @@ import { stat } from "node:fs/promises";
 import { freemem } from "node:os";
 import { join } from "node:path";
 import env from "./env.js";
-const ENV = await env();
-const CWD = process.cwd();
+env();
+const CONFIG = (await import(`file://${join(process.cwd(), "jeasx.config.js")}`)).default;
 const NODE_ENV_IS_DEVELOPMENT = process.env.NODE_ENV === "development";
 const ROUTE_CACHE_LIMIT = Math.floor(freemem() / 1024 / 1024);
-const FASTIFY_SERVER = ENV.FASTIFY_SERVER ?? ((fastify2) => fastify2);
+const FASTIFY_SERVER = CONFIG.FASTIFY_SERVER ?? ((fastify2) => fastify2);
 var serverless_default = FASTIFY_SERVER(
   fastify({
-    ...ENV.FASTIFY_SERVER_OPTIONS?.()
+    ...CONFIG.FASTIFY_SERVER_OPTIONS?.()
   })
 ).register((fastify2) => {
   fastify2.register(fastifyCookie, {
-    ...ENV.FASTIFY_COOKIE_OPTIONS?.()
+    ...CONFIG.FASTIFY_COOKIE_OPTIONS?.()
   }).register(fastifyFormbody, {
-    ...ENV.FASTIFY_FORMBODY_OPTIONS?.()
+    ...CONFIG.FASTIFY_FORMBODY_OPTIONS?.()
   }).register(fastifyMultipart, {
-    ...ENV.FASTIFY_MULTIPART_OPTIONS?.()
+    ...CONFIG.FASTIFY_MULTIPART_OPTIONS?.()
   }).register(fastifyStatic, {
-    root: ["public", "dist"].map((dir) => join(CWD, dir)),
+    root: ["public", "dist"].map((dir) => join(process.cwd(), dir)),
     wildcard: false,
     globIgnore: ["/**/\\[*\\].js?(.map)"],
     // ignore server routes
-    ...ENV.FASTIFY_STATIC_OPTIONS?.()
+    ...CONFIG.FASTIFY_STATIC_OPTIONS?.()
   }).decorateRequest("route", "").decorateRequest("path", "").addHook("onRequest", async (request) => {
     const index = request.url.indexOf("?");
     request.path = index === -1 ? request.url : request.url.slice(0, index);
@@ -59,7 +59,7 @@ async function handler(request, reply) {
       }
       if (module === void 0) {
         try {
-          const modulePath = join(CWD, "dist", `${route}.js`);
+          const modulePath = join(process.cwd(), "dist", `${route}.js`);
           if (NODE_ENV_IS_DEVELOPMENT) {
             if (typeof require === "function") {
               if (require.cache[modulePath]) {

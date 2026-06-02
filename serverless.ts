@@ -14,9 +14,9 @@ import { freemem } from "node:os";
 import { join } from "node:path";
 import env from "./env.js";
 
-const ENV = await env();
+env();
 
-const CWD = process.cwd();
+const CONFIG = (await import(`file://${join(process.cwd(), "jeasx.config.js")}`)).default;
 const NODE_ENV_IS_DEVELOPMENT = process.env.NODE_ENV === "development";
 const ROUTE_CACHE_LIMIT = Math.floor(freemem() / 1024 / 1024);
 
@@ -28,33 +28,33 @@ declare module "fastify" {
 }
 
 // Enhance Fastify server from userland
-const FASTIFY_SERVER = (ENV.FASTIFY_SERVER ?? ((fastify) => fastify)) as (
+const FASTIFY_SERVER = (CONFIG.FASTIFY_SERVER ?? ((fastify) => fastify)) as (
   fastify: FastifyInstance,
 ) => FastifyInstance;
 
 // Create and export a Fastify instance
 export default FASTIFY_SERVER(
   fastify({
-    ...(ENV.FASTIFY_SERVER_OPTIONS?.() as FastifyServerOptions),
+    ...(CONFIG.FASTIFY_SERVER_OPTIONS?.() as FastifyServerOptions),
   }),
 )
   // Create encapsulation context
   .register((fastify) => {
     fastify
       .register(fastifyCookie, {
-        ...(ENV.FASTIFY_COOKIE_OPTIONS?.() as FastifyCookieOptions),
+        ...(CONFIG.FASTIFY_COOKIE_OPTIONS?.() as FastifyCookieOptions),
       })
       .register(fastifyFormbody, {
-        ...(ENV.FASTIFY_FORMBODY_OPTIONS?.() as FastifyFormbodyOptions),
+        ...(CONFIG.FASTIFY_FORMBODY_OPTIONS?.() as FastifyFormbodyOptions),
       })
       .register(fastifyMultipart, {
-        ...(ENV.FASTIFY_MULTIPART_OPTIONS?.() as FastifyMultipartOptions),
+        ...(CONFIG.FASTIFY_MULTIPART_OPTIONS?.() as FastifyMultipartOptions),
       })
       .register(fastifyStatic, {
-        root: ["public", "dist"].map((dir) => join(CWD, dir)),
+        root: ["public", "dist"].map((dir) => join(process.cwd(), dir)),
         wildcard: false,
         globIgnore: ["/**/\\[*\\].js?(.map)"], // ignore server routes
-        ...(ENV.FASTIFY_STATIC_OPTIONS?.() as FastifyStaticOptions),
+        ...(CONFIG.FASTIFY_STATIC_OPTIONS?.() as FastifyStaticOptions),
       })
       .decorateRequest("route", "")
       .decorateRequest("path", "")
@@ -109,7 +109,7 @@ async function handler(request: FastifyRequest, reply: FastifyReply) {
       // Module was not loaded yet?
       if (module === undefined) {
         try {
-          const modulePath = join(CWD, "dist", `${route}.js`);
+          const modulePath = join(process.cwd(), "dist", `${route}.js`);
           if (NODE_ENV_IS_DEVELOPMENT) {
             if (typeof require === "function") {
               // Bun: Remove module from cache before importing
