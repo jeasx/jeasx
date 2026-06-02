@@ -1,5 +1,56 @@
 # Changelog
 
+## 2026-06-02 - Jeasx 2.7.0 released
+
+🎉 This release introduces an explicit configuration file named `jeasx.config.js`, replacing the previously used `.env.js`. This change improves clarity and usability for configuring `esbuild` and `Fastify` options, which could no longer be passed as environment variables in recent releases.
+
+To upgrade:
+
+- If you used `.env.js` before, just rename it to `jeasx.config.js`.
+- If you didn’t use `.env.js`, create a new file called `jeasx.config.js` in your project folder. Add the following code as default to get a reminder of all available configuration options:
+
+```js
+export default {
+  /** @type {() => import("esbuild").BuildOptions} */
+  // ESBUILD_SERVER_OPTIONS: () => ({}),
+
+  /** @type {() => import("esbuild").BuildOptions} */
+  // ESBUILD_BROWSER_OPTIONS: () => ({}),
+
+  /** @type {(fastify: import("fastify").FastifyInstance) => import("fastify").FastifyInstance} */
+  // FASTIFY_SERVER: (fastify) => fastify,
+
+  /** @type {() => import("fastify").FastifyServerOptions} */
+  // FASTIFY_SERVER_OPTIONS: () => ({}),
+
+  /** @type {() => import("@fastify/static").FastifyStaticOptions} */
+  // FASTIFY_STATIC_OPTIONS: () => ({}),
+
+  /** @type {() => import("@fastify/cookie").FastifyCookieOptions} */
+  // FASTIFY_COOKIE_OPTIONS: () => ({}),
+
+  /** @type {() => import("@fastify/formbody").FastifyFormbodyOptions} */
+  // FASTIFY_FORMBODY_OPTIONS: () => ({}),
+
+  /** @type {() => import("@fastify/multipart").FastifyMultipartOptions} */
+  // FASTIFY_MULTIPART_OPTIONS: () => ({}),
+};
+```
+
+If you’re using Docker, make sure to create an entry for `jeasx.config.js` in your `.dockerignore` file.
+
+**Please note:** Support for `.env.js` has been discontinued in this release to streamline and simplify the codebase. If you previously used `.env.js` to set or modify environment variables besides the existing configuration options, you can now do this directly in `jeasx.config.js` by modifying `process.env` using JavaScript.
+
+```js
+process.env.API_ENDPOINT="https://expo.jeasx.dev/jokes/api/";
+
+export default {
+  /* ... */
+};
+```
+
+Dependency updates: `@types/node@25.9.1`
+
 ## 2026-05-14 - Jeasx 2.6.2 released
 
 🎉 This release moves the configuration for esbuild’s sourcemap settings from core to userland. Since there is no universal default that fits all environments and policies, this change allows for greater flexibility.
