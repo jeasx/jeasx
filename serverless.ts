@@ -19,6 +19,7 @@ env();
 const CONFIG = (await import(`file://${join(process.cwd(), "jeasx.config.js")}`)).default;
 const NODE_ENV_IS_DEVELOPMENT = process.env.NODE_ENV === "development";
 const ROUTE_CACHE_LIMIT = Math.floor(freemem() / 1024 / 1024);
+const DIST_PATH = join(process.cwd(), "dist", "/");
 
 declare module "fastify" {
   interface FastifyRequest {
@@ -109,7 +110,13 @@ async function handler(request: FastifyRequest, reply: FastifyReply) {
       // Module was not loaded yet?
       if (module === undefined) {
         try {
-          const modulePath = join(process.cwd(), "dist", `${route}.js`);
+          const modulePath = join(DIST_PATH, `${route}.js`);
+          if (!modulePath.startsWith(DIST_PATH)) {
+            // Skip import if module path does not point to a location under 'dist'.
+            // Although this case should theoretically never happen,
+            // it is handled explicitly for enhanced security.
+            continue;
+          }
           if (NODE_ENV_IS_DEVELOPMENT) {
             if (typeof require === "function") {
               // Bun: Remove module from cache before importing

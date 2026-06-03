@@ -12,6 +12,7 @@ env();
 const CONFIG = (await import(`file://${join(process.cwd(), "jeasx.config.js")}`)).default;
 const NODE_ENV_IS_DEVELOPMENT = process.env.NODE_ENV === "development";
 const ROUTE_CACHE_LIMIT = Math.floor(freemem() / 1024 / 1024);
+const DIST_PATH = join(process.cwd(), "dist", "/");
 const FASTIFY_SERVER = CONFIG.FASTIFY_SERVER ?? ((fastify2) => fastify2);
 var serverless_default = FASTIFY_SERVER(
   fastify({
@@ -59,7 +60,10 @@ async function handler(request, reply) {
       }
       if (module === void 0) {
         try {
-          const modulePath = join(process.cwd(), "dist", `${route}.js`);
+          const modulePath = join(DIST_PATH, `${route}.js`);
+          if (!modulePath.startsWith(DIST_PATH)) {
+            continue;
+          }
           if (NODE_ENV_IS_DEVELOPMENT) {
             if (typeof require === "function") {
               if (require.cache[modulePath]) {
