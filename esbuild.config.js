@@ -1,4 +1,5 @@
 import * as esbuild from "esbuild";
+import { writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import env from "./env.js";
 
@@ -17,43 +18,60 @@ const BROWSER_PUBLIC_ENV = Object.keys(process.env)
     Object({ "process.env.BROWSER_PUBLIC_BUILD_TIME": BUILD_TIME }),
   );
 
-/** @type esbuild.BuildOptions[] */
-const buildOptions = [
-  {
-    entryPoints: ["src/**/[*].*"],
-    define: { "process.env.BUILD_TIME": BUILD_TIME },
-    minify: process.env.NODE_ENV !== "development",
-    logLevel: "info",
-    color: true,
-    bundle: true,
-    outdir: "dist",
-    publicPath: "/",
-    assetNames: "[dir]/[name]-[hash]",
-    platform: "neutral",
-    format: "esm",
-    packages: "external",
-    ...CONFIG.ESBUILD_SERVER_OPTIONS?.(),
-  },
-  {
-    entryPoints: ["src/**/index.*"],
-    define: BROWSER_PUBLIC_ENV,
-    minify: process.env.NODE_ENV !== "development",
-    logLevel: "info",
-    color: true,
-    bundle: true,
-    outdir: "dist",
-    publicPath: "/",
-    assetNames: "[dir]/[name]-[hash]",
-    platform: "browser",
-    format: "esm",
-    ...CONFIG.ESBUILD_BROWSER_OPTIONS?.(),
-  },
-];
+/** @type esbuild.BuildOptions */
+const SERVER_OPTIONS = {
+  entryPoints: ["src/**/[*].*"],
+  define: { "process.env.BUILD_TIME": BUILD_TIME },
+  minify: process.env.NODE_ENV !== "development",
+  logLevel: "info",
+  color: true,
+  bundle: true,
+  metafile: true,
+  outdir: "dist",
+  publicPath: "/",
+  assetNames: "[dir]/[name]-[hash]",
+  platform: "neutral",
+  format: "esm",
+  packages: "external",
+  ...CONFIG.ESBUILD_SERVER_OPTIONS?.(),
+};
 
-buildOptions.forEach(async (options) => {
+/** @type esbuild.BuildOptions */
+const BROWSER_OPTIONS = {
+  entryPoints: ["src/**/index.*"],
+  define: BROWSER_PUBLIC_ENV,
+  minify: process.env.NODE_ENV !== "development",
+  logLevel: "info",
+  color: true,
+  bundle: true,
+  outdir: "dist",
+  publicPath: "/",
+  assetNames: "[dir]/[name]-[hash]",
+  platform: "browser",
+  format: "esm",
+  ...CONFIG.ESBUILD_BROWSER_OPTIONS?.(),
+};
+
+[SERVER_OPTIONS, BROWSER_OPTIONS].forEach(async (options) => {
   if (process.env.NODE_ENV === "development") {
     (await esbuild.context(options)).watch();
   } else {
-    await esbuild.build(options);
+    const result = await esbuild.build(options);
+    if (options === SERVER_OPTIONS) {
+      // Create metafile with existing server routes
+      if (result.metafile?.outputs) {
+        const routes = Object.keys(result.metafile.outputs)
+          // Filter server routes
+          .filter((path) => /\[.+\]\.js$/.test(path))
+          // Remove 'dist' from path
+          .map((path) => path.slice("dist".length));
+
+        // Export routes as JavaScript file
+        await writeFile(
+          join(process.cwd(), "dist", `[--routes].js`),
+          `export default ${JSON.stringify(routes)};`,
+        );
+      }
+    }
   }
 });

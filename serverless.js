@@ -5,14 +5,18 @@ import fastifyStatic from "@fastify/static";
 import fastify from "fastify";
 import { jsxToString } from "jsx-async-runtime";
 import { stat } from "node:fs/promises";
-import { freemem } from "node:os";
 import { join } from "node:path";
 import env from "./env.js";
 env();
 const CONFIG = (await import(`file://${join(process.cwd(), "jeasx.config.js")}`)).default;
 const NODE_ENV_IS_DEVELOPMENT = process.env.NODE_ENV === "development";
-const ROUTE_CACHE_LIMIT = Math.floor(freemem() / 1024 / 1024);
-const DIST_PATH = join(process.cwd(), "dist", "/");
+const MODULE_BY_ROUTE = /* @__PURE__ */ new Map();
+if (!NODE_ENV_IS_DEVELOPMENT) {
+  const routes = (await import(`file://${join(process.cwd(), "dist", `[--routes].js`)}`)).default;
+  for (const route of routes) {
+    MODULE_BY_ROUTE.set(route, null);
+  }
+}
 const FASTIFY_SERVER = CONFIG.FASTIFY_SERVER ?? ((fastify2) => fastify2);
 var serverless_default = FASTIFY_SERVER(
   fastify({
@@ -47,23 +51,19 @@ var serverless_default = FASTIFY_SERVER(
     }
   });
 });
-const modules = /* @__PURE__ */ new Map();
 async function handler(request, reply) {
   let response;
   const context = {};
   const props = { request, reply };
   try {
     for (const route of generateRoutes(request.path)) {
-      let module = modules.get(route);
-      if (module === null) {
+      let module = MODULE_BY_ROUTE.get(`${route}.js`);
+      if (!NODE_ENV_IS_DEVELOPMENT && module === void 0) {
         continue;
       }
-      if (module === void 0) {
+      if (module === null || module === void 0) {
         try {
-          const modulePath = join(DIST_PATH, `${route}.js`);
-          if (!modulePath.startsWith(DIST_PATH)) {
-            continue;
-          }
+          const modulePath = join(process.cwd(), "dist", `${route}.js`);
           if (NODE_ENV_IS_DEVELOPMENT) {
             if (typeof require === "function") {
               if (require.cache[modulePath]) {
@@ -76,23 +76,16 @@ async function handler(request, reply) {
             }
           } else {
             module = await import(`file://${modulePath}`);
-            modules.set(route, module);
+            MODULE_BY_ROUTE.set(`${route}.js`, module);
           }
         } catch (e) {
           switch (e.code) {
             case "ENOENT":
             case "ENOTDIR":
             case "ERR_MODULE_NOT_FOUND":
-              if (!NODE_ENV_IS_DEVELOPMENT) {
-                modules.set(route, null);
-              }
               continue;
             default:
               throw e;
-          }
-        } finally {
-          if (modules.size > ROUTE_CACHE_LIMIT) {
-            modules.delete(modules.keys().next().value);
           }
         }
       }
