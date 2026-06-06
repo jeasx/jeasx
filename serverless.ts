@@ -9,7 +9,7 @@ import fastify, {
   FastifyServerOptions,
 } from "fastify";
 import { jsxToString } from "jsx-async-runtime";
-import { stat } from "node:fs/promises";
+import { readFile, stat } from "node:fs/promises";
 import { join } from "node:path";
 import env from "./env.js";
 
@@ -25,8 +25,9 @@ const MODULE_BY_ROUTE = new Map<string, { default: Function } | null>();
 // Modules are lazily loaded on their first request for a specific route.
 // Only routes explicitly initialized with `null` will be loaded.
 if (!NODE_ENV_IS_DEVELOPMENT) {
-  const { routes } = (await import(`file://${join(process.cwd(), "dist", `[--jeasx--].js`)}`))
-    .default;
+  const { routes } = JSON.parse(
+    await readFile(join(process.cwd(), "dist", `[--jeasx--].js.map`), "utf8"),
+  );
   for (const route of routes) {
     MODULE_BY_ROUTE.set(route, null);
   }
