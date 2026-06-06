@@ -61,12 +61,11 @@ const BROWSER_OPTIONS = {
       // Create metafile with existing server routes
       if (result.metafile?.outputs) {
         const routes = Object.keys(result.metafile.outputs)
-          // Filter server routes
+          // Routes only
           .filter((path) => /\[.+\]\.js$/.test(path))
-          // Remove 'dist' from path
+          // Remove `dist`
           .map((path) => path.slice("dist".length));
-
-        // Export routes as JavaScript file
+        // Export as JavaScript
         await writeFile(
           join(process.cwd(), "dist", `[--routes].js`),
           `export default ${JSON.stringify(routes)};`,

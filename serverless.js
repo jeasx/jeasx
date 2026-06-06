@@ -61,7 +61,7 @@ async function handler(request, reply) {
       if (!NODE_ENV_IS_DEVELOPMENT && module === void 0) {
         continue;
       }
-      if (module === null || module === void 0) {
+      if (module === null || NODE_ENV_IS_DEVELOPMENT && module === void 0) {
         try {
           const modulePath = join(process.cwd(), "dist", `${route}.js`);
           if (NODE_ENV_IS_DEVELOPMENT) {
