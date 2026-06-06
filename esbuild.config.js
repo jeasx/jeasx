@@ -67,8 +67,8 @@ const BROWSER_OPTIONS = {
           .map((path) => path.slice("dist".length));
         // Export as JavaScript
         await writeFile(
-          join(process.cwd(), "dist", `[--routes].js`),
-          `export default ${JSON.stringify(routes)};`,
+          join(process.cwd(), "dist", `[--jeasx--].js`),
+          `export default ${JSON.stringify({ routes })};`,
         );
       }
     }

@@ -12,7 +12,7 @@ const CONFIG = (await import(`file://${join(process.cwd(), "jeasx.config.js")}`)
 const NODE_ENV_IS_DEVELOPMENT = process.env.NODE_ENV === "development";
 const MODULE_BY_ROUTE = /* @__PURE__ */ new Map();
 if (!NODE_ENV_IS_DEVELOPMENT) {
-  const routes = (await import(`file://${join(process.cwd(), "dist", `[--routes].js`)}`)).default;
+  const { routes } = (await import(`file://${join(process.cwd(), "dist", `[--jeasx--].js`)}`)).default;
   for (const route of routes) {
     MODULE_BY_ROUTE.set(route, null);
   }
