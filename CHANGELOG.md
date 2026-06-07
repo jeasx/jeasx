@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-06-07 - Jeasx 2.7.1 released
+
+🎉 This patch release requires no changes to your project but introduces significant improvements to internal module handling: Previously, a dynamic runtime cache was used to resolve modules for routes. This cache stored entries for both existing and non-existent routes, leading to potential growth over time - despite a predefined maximum cache size.
+
+With this update, the cache strategy has been optimized for more efficient and sustainable memory usage: This release leverages [esbuild’s metadata](https://esbuild.github.io/api/#build-metadata) to generate a static metadata file at build time, containing all existing routes. This metadata is loaded during server startup, ensuring that only modules included in the routes list are loaded on the first request.
+
+The result? Fast cold starts, efficient handling of existing and non-existent routes (without caching overhead), and enhanced security. Since only modules generated at build time can be loaded, even in the unlikely case where a malformed request could bypass Fastify’s strict request sanitation, it cannot escape the `dist` directory.
+
+The changes above have no impact on your development workflow. You can continue creating new routes or modifying existing ones - your updates will be loaded automatically, without requiring a restart of the application.
+
+Dependency updates: `@types/node@25.9.2`
+
 ## 2026-06-02 - Jeasx 2.7.0 released
 
 🎉 This release introduces an explicit configuration file named `jeasx.config.js`, replacing the previously used `.env.js`. This change improves clarity and usability for configuring `esbuild` and `Fastify` options, which could no longer be passed as environment variables in recent releases.
@@ -13,25 +25,18 @@ To upgrade:
 export default {
   /** @type {() => import("esbuild").BuildOptions} */
   // ESBUILD_SERVER_OPTIONS: () => ({}),
-
   /** @type {() => import("esbuild").BuildOptions} */
   // ESBUILD_BROWSER_OPTIONS: () => ({}),
-
   /** @type {(fastify: import("fastify").FastifyInstance) => import("fastify").FastifyInstance} */
   // FASTIFY_SERVER: (fastify) => fastify,
-
   /** @type {() => import("fastify").FastifyServerOptions} */
   // FASTIFY_SERVER_OPTIONS: () => ({}),
-
   /** @type {() => import("@fastify/static").FastifyStaticOptions} */
   // FASTIFY_STATIC_OPTIONS: () => ({}),
-
   /** @type {() => import("@fastify/cookie").FastifyCookieOptions} */
   // FASTIFY_COOKIE_OPTIONS: () => ({}),
-
   /** @type {() => import("@fastify/formbody").FastifyFormbodyOptions} */
   // FASTIFY_FORMBODY_OPTIONS: () => ({}),
-
   /** @type {() => import("@fastify/multipart").FastifyMultipartOptions} */
   // FASTIFY_MULTIPART_OPTIONS: () => ({}),
 };
@@ -42,7 +47,7 @@ If you’re using Docker, make sure to create an entry for `jeasx.config.js` in 
 **Please note:** Support for `.env.js` has been discontinued in this release to streamline and simplify the codebase. If you previously used `.env.js` to set or modify environment variables besides the existing configuration options, you can now do this directly in `jeasx.config.js` by modifying `process.env` using JavaScript.
 
 ```js
-process.env.API_ENDPOINT="https://expo.jeasx.dev/jokes/api/";
+process.env.API_ENDPOINT = "https://expo.jeasx.dev/jokes/api/";
 
 export default {
   /* ... */
