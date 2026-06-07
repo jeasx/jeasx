@@ -25,8 +25,8 @@ const MODULE_BY_ROUTE = new Map<string, { default: Function } | null>();
 // Modules are lazily loaded on their first request for a specific route.
 // Only routes explicitly initialized with `null` will be loaded.
 if (!NODE_ENV_IS_DEVELOPMENT) {
-  const metainfo = join(process.cwd(), "dist", "[--meta-info--].js");
-  const { routes } = (await import(`file://${metainfo}`)).default;
+  const { routes } = (await import(`file://${join(process.cwd(), "dist", "[--metadata--].js")}`))
+    .default;
   for (const route of routes) {
     MODULE_BY_ROUTE.set(route, null);
   }
