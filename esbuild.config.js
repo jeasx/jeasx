@@ -64,8 +64,8 @@ const BROWSER_OPTIONS = {
           .filter((path) => /\[.+\]\.js$/.test(path))
           .map((path) => path.slice("dist".length));
         await writeFile(
-          join(process.cwd(), "dist", `[--jeasx--].js.map`),
-          JSON.stringify({ routes }),
+          join(process.cwd(), "dist", `[--meta-info--].js`),
+          `export default ${JSON.stringify({ routes })};`,
         );
       }
     }

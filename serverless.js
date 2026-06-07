@@ -4,7 +4,7 @@ import fastifyMultipart from "@fastify/multipart";
 import fastifyStatic from "@fastify/static";
 import fastify from "fastify";
 import { jsxToString } from "jsx-async-runtime";
-import { readFile, stat } from "node:fs/promises";
+import { stat } from "node:fs/promises";
 import { join } from "node:path";
 import env from "./env.js";
 env();
@@ -12,9 +12,8 @@ const CONFIG = (await import(`file://${join(process.cwd(), "jeasx.config.js")}`)
 const NODE_ENV_IS_DEVELOPMENT = process.env.NODE_ENV === "development";
 const MODULE_BY_ROUTE = /* @__PURE__ */ new Map();
 if (!NODE_ENV_IS_DEVELOPMENT) {
-  const { routes } = JSON.parse(
-    await readFile(join(process.cwd(), "dist", `[--jeasx--].js.map`), "utf8")
-  );
+  const metainfo = join(process.cwd(), "dist", "[--meta-info--].js");
+  const { routes } = (await import(`file://${metainfo}`)).default;
   for (const route of routes) {
     MODULE_BY_ROUTE.set(route, null);
   }
