@@ -15,7 +15,8 @@ import env from "./env.js";
 
 env();
 
-const CONFIG = (await import(`file://${join(process.cwd(), "jeasx.config.js")}`)).default;
+const CWD = process.cwd();
+const CONFIG = (await import(`file://${join(CWD, "jeasx.config.js")}`)).default;
 const NODE_ENV_IS_DEVELOPMENT = process.env.NODE_ENV === "development";
 
 // Cache for route modules used in non-development environments.
@@ -25,8 +26,7 @@ const MODULE_BY_ROUTE = new Map<string, { default: Function } | null>();
 // Modules are lazily loaded on their first request for a specific route.
 // Only routes explicitly initialized with `null` will be loaded.
 if (!NODE_ENV_IS_DEVELOPMENT) {
-  const { routes } = (await import(`file://${join(process.cwd(), "dist", "[--metadata--].js")}`))
-    .default;
+  const { routes } = (await import(`file://${join(CWD, "dist", "[--metadata--].js")}`)).default;
   for (const route of routes) {
     MODULE_BY_ROUTE.set(route, null);
   }
@@ -63,7 +63,7 @@ export default FASTIFY_SERVER(
         ...(CONFIG.FASTIFY_MULTIPART_OPTIONS?.() as FastifyMultipartOptions),
       })
       .register(fastifyStatic, {
-        root: ["public", "dist"].map((dir) => join(process.cwd(), dir)),
+        root: ["public", "dist"].map((dir) => join(CWD, dir)),
         wildcard: false,
         globIgnore: ["/**/\\[*\\].js?(.map)"], // ignore server routes
         ...(CONFIG.FASTIFY_STATIC_OPTIONS?.() as FastifyStaticOptions),
@@ -120,7 +120,7 @@ async function handler(request: FastifyRequest, reply: FastifyReply) {
       // Module was not loaded yet?
       if (module === null || (NODE_ENV_IS_DEVELOPMENT && module === undefined)) {
         try {
-          const modulePath = join(process.cwd(), "dist", `${route}.js`);
+          const modulePath = join(CWD, "dist", `${route}.js`);
           if (NODE_ENV_IS_DEVELOPMENT) {
             if (typeof require === "function") {
               // Bun: Remove module from cache before importing

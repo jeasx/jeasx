@@ -8,11 +8,12 @@ import { stat } from "node:fs/promises";
 import { join } from "node:path";
 import env from "./env.js";
 env();
-const CONFIG = (await import(`file://${join(process.cwd(), "jeasx.config.js")}`)).default;
+const CWD = process.cwd();
+const CONFIG = (await import(`file://${join(CWD, "jeasx.config.js")}`)).default;
 const NODE_ENV_IS_DEVELOPMENT = process.env.NODE_ENV === "development";
 const MODULE_BY_ROUTE = /* @__PURE__ */ new Map();
 if (!NODE_ENV_IS_DEVELOPMENT) {
-  const { routes } = (await import(`file://${join(process.cwd(), "dist", "[--metadata--].js")}`)).default;
+  const { routes } = (await import(`file://${join(CWD, "dist", "[--metadata--].js")}`)).default;
   for (const route of routes) {
     MODULE_BY_ROUTE.set(route, null);
   }
@@ -30,7 +31,7 @@ var serverless_default = FASTIFY_SERVER(
   }).register(fastifyMultipart, {
     ...CONFIG.FASTIFY_MULTIPART_OPTIONS?.()
   }).register(fastifyStatic, {
-    root: ["public", "dist"].map((dir) => join(process.cwd(), dir)),
+    root: ["public", "dist"].map((dir) => join(CWD, dir)),
     wildcard: false,
     globIgnore: ["/**/\\[*\\].js?(.map)"],
     // ignore server routes
@@ -63,7 +64,7 @@ async function handler(request, reply) {
       }
       if (module === null || NODE_ENV_IS_DEVELOPMENT && module === void 0) {
         try {
-          const modulePath = join(process.cwd(), "dist", `${route}.js`);
+          const modulePath = join(CWD, "dist", `${route}.js`);
           if (NODE_ENV_IS_DEVELOPMENT) {
             if (typeof require === "function") {
               if (require.cache[modulePath]) {

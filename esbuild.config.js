@@ -5,7 +5,9 @@ import env from "./env.js";
 
 env();
 
-const CONFIG = (await import(`file://${join(process.cwd(), "jeasx.config.js")}`)).default;
+const CWD = process.cwd();
+const CONFIG = (await import(`file://${join(CWD, "jeasx.config.js")}`)).default;
+const NODE_ENV_IS_DEVELOPMENT = process.env.NODE_ENV === "development";
 const BUILD_TIME = `"${process.env.BUILD_TIME || Date.now().toString(36)}"`;
 
 const BROWSER_PUBLIC_ENV = Object.keys(process.env)
@@ -22,7 +24,7 @@ const BROWSER_PUBLIC_ENV = Object.keys(process.env)
 const SERVER_OPTIONS = {
   entryPoints: ["src/**/[*].*"],
   define: { "process.env.BUILD_TIME": BUILD_TIME },
-  minify: process.env.NODE_ENV !== "development",
+  minify: !NODE_ENV_IS_DEVELOPMENT,
   logLevel: "info",
   color: true,
   bundle: true,
@@ -40,7 +42,7 @@ const SERVER_OPTIONS = {
 const BROWSER_OPTIONS = {
   entryPoints: ["src/**/index.*"],
   define: BROWSER_PUBLIC_ENV,
-  minify: process.env.NODE_ENV !== "development",
+  minify: !NODE_ENV_IS_DEVELOPMENT,
   logLevel: "info",
   color: true,
   bundle: true,
@@ -53,18 +55,18 @@ const BROWSER_OPTIONS = {
 };
 
 [SERVER_OPTIONS, BROWSER_OPTIONS].forEach(async (options) => {
-  if (process.env.NODE_ENV === "development") {
+  if (NODE_ENV_IS_DEVELOPMENT) {
     (await esbuild.context(options)).watch();
   } else {
     const result = await esbuild.build(options);
     if (options === SERVER_OPTIONS) {
-      // Create metafile with existing server routes
+      // Create metadata file with all routes
       if (result.metafile?.outputs) {
         const routes = Object.keys(result.metafile.outputs)
           .filter((path) => /\[.+\]\.js$/.test(path))
           .map((path) => path.slice("dist".length));
         await writeFile(
-          join(process.cwd(), "dist", `[--metadata--].js`),
+          join(CWD, "dist", `[--metadata--].js`),
           `export default ${JSON.stringify({ routes })};`,
         );
       }
