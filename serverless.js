@@ -58,7 +58,7 @@ async function handler(request, reply) {
   const props = { request, reply };
   try {
     for (const route of generateRoutes(request.path)) {
-      let module = MODULE_BY_ROUTE.get(`${route}.js`);
+      let module = MODULE_BY_ROUTE.get(route);
       if (!NODE_ENV_IS_DEVELOPMENT && module === void 0) {
         continue;
       }
@@ -77,7 +77,7 @@ async function handler(request, reply) {
             }
           } else {
             module = await import(`file://${modulePath}`);
-            MODULE_BY_ROUTE.set(`${route}.js`, module);
+            MODULE_BY_ROUTE.set(route, module);
           }
         } catch (e) {
           switch (e.code) {

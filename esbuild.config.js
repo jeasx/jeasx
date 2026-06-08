@@ -64,7 +64,7 @@ const BROWSER_OPTIONS = {
       if (result.metafile?.outputs) {
         const routes = Object.keys(result.metafile.outputs)
           .filter((path) => /\[.+\]\.js$/.test(path))
-          .map((path) => path.slice("dist".length));
+          .map((path) => path.slice("dist".length, -".js".length));
         await writeFile(
           join(CWD, "dist", `[--metadata--].js`),
           `export default ${JSON.stringify({ routes })};`,

@@ -108,7 +108,7 @@ async function handler(request: FastifyRequest, reply: FastifyReply) {
     // Execute route handlers for current request
     for (const route of generateRoutes(request.path)) {
       // Resolve module via cache
-      let module = MODULE_BY_ROUTE.get(`${route}.js`);
+      let module = MODULE_BY_ROUTE.get(route);
 
       // Skip loading the module if the route path was not initialized.
       // This avoids potential path traversal vulnerabilities caused
@@ -137,7 +137,7 @@ async function handler(request: FastifyRequest, reply: FastifyReply) {
           } else {
             // Load and cache module for non-development
             module = await import(`file://${modulePath}`);
-            MODULE_BY_ROUTE.set(`${route}.js`, module);
+            MODULE_BY_ROUTE.set(route, module);
           }
         } catch (e) {
           switch (e.code) {
