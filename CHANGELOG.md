@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-06-10 - Jeasx 2.7.2 released
+
+🎉 This release introduces significant performance and memory optimizations:
+
+- The core `generateRoutes` method has been rewritten to improve execution speed and significantly reduce temporary array creation. This minimizes garbage collection overhead during high-load scenarios.
+
+- The internal cache has been migrated from a `Map` to a plain object to leverage engine-level optimizations for small, read-heavy collections. I've also added a missing type definition for the module cache.
+
+- The `.js` extension is now stripped from route export metadata during the build process, reducing the number of string operations required when resolving modules from the cache.
+
 ## 2026-06-07 - Jeasx 2.7.1 released
 
 🎉 This patch release requires no changes to your project but introduces significant improvements to internal module handling: Previously, a dynamic runtime cache was used to resolve modules for routes. This cache stored entries for both existing and non-existent routes, leading to potential growth over time - despite a predefined maximum cache size.
