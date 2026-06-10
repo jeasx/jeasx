@@ -113,7 +113,7 @@ async function handler(request: FastifyRequest, reply: FastifyReply) {
       // Skip loading the module if the route path was not initialized.
       // This avoids potential path traversal vulnerabilities caused
       // by unexpected `route` values.
-      if (!NODE_ENV_IS_DEVELOPMENT && module === undefined) {
+      if (module === undefined && !NODE_ENV_IS_DEVELOPMENT) {
         continue;
       }
 

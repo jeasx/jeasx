@@ -58,7 +58,7 @@ async function handler(request, reply) {
   try {
     for (const route of generateRoutes(request.path)) {
       let module = MODULE_BY_ROUTE[route];
-      if (!NODE_ENV_IS_DEVELOPMENT && module === void 0) {
+      if (module === void 0 && !NODE_ENV_IS_DEVELOPMENT) {
         continue;
       }
       if (module === null || NODE_ENV_IS_DEVELOPMENT && module === void 0) {
