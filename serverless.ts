@@ -20,7 +20,7 @@ const CONFIG = (await import(`file://${join(CWD, "jeasx.config.js")}`)).default;
 const NODE_ENV_IS_DEVELOPMENT = process.env.NODE_ENV === "development";
 
 // Cache for route modules used in non-development environments.
-const MODULE_BY_ROUTE = new Map<string, { default: Function } | null>();
+const MODULE_BY_ROUTE = {};
 
 // Initialize the cache with `null` for all known modules.
 // Modules are lazily loaded on their first request for a specific route.
@@ -28,7 +28,7 @@ const MODULE_BY_ROUTE = new Map<string, { default: Function } | null>();
 if (!NODE_ENV_IS_DEVELOPMENT) {
   const { routes } = (await import(`file://${join(CWD, "dist", "[--metadata--].js")}`)).default;
   for (const route of routes) {
-    MODULE_BY_ROUTE.set(route, null);
+    MODULE_BY_ROUTE[route] = null;
   }
 }
 
@@ -65,7 +65,7 @@ export default FASTIFY_SERVER(
       .register(fastifyStatic, {
         root: ["public", "dist"].map((dir) => join(CWD, dir)),
         wildcard: false,
-        globIgnore: ["/**/\\[*\\].js?(.map)"], // ignore server routes
+        globIgnore: ["/**/\\[*\\].js?(.map)"],
         ...(CONFIG.FASTIFY_STATIC_OPTIONS?.() as FastifyStaticOptions),
       })
       .decorateRequest("route", "")
@@ -108,7 +108,7 @@ async function handler(request: FastifyRequest, reply: FastifyReply) {
     // Execute route handlers for current request
     for (const route of generateRoutes(request.path)) {
       // Resolve module via cache
-      let module = MODULE_BY_ROUTE.get(route);
+      let module = MODULE_BY_ROUTE[route];
 
       // Skip loading the module if the route path was not initialized.
       // This avoids potential path traversal vulnerabilities caused
@@ -137,7 +137,7 @@ async function handler(request: FastifyRequest, reply: FastifyReply) {
           } else {
             // Load and cache module for non-development
             module = await import(`file://${modulePath}`);
-            MODULE_BY_ROUTE.set(route, module);
+            MODULE_BY_ROUTE[route] = module;
           }
         } catch (e) {
           switch (e.code) {
@@ -155,11 +155,12 @@ async function handler(request: FastifyRequest, reply: FastifyReply) {
       // Store current route in request
       request.route = route;
 
+      // Call functions with 'this' context and props as parameters
+      // otherwise return default export
       response =
-        // Call functions with 'this' context and props as parameters
         typeof module.default === "function"
           ? await module.default.call(context, props)
-          : module.default; // otherwise return default export
+          : module.default;
 
       if (reply.sent) {
         return;
@@ -200,56 +201,51 @@ async function handler(request: FastifyRequest, reply: FastifyReply) {
 
 /**
  * Generates all possible routes based on the given input path.
+ *
+ * Example routes for "/a/b/c":
+ *
+ * [
+ *  "/[...guard]","/a/[...guard]","/a/b/[...guard]","/a/b/c/[...guard]",
+ *  "/a/b/[c]","/a/b/c/[index]",
+ *  "/a/b/c/[...path]","/a/b/[...path]","/a/[...path]","/[...path]",
+ *  "/a/b/c/[404]","/a/b/[404]","/a/[404]","/[404]"
+ * ]
  */
 function generateRoutes(path: string): string[] {
+  const routes = [];
+
+  // Transform given path into array of all its segments.
   // "/a/b/c" => ["/a/b/c", "/a/b", "/a", ""]
-  const segments = generateSegments(path);
+  const segments = [""];
+  let current = "";
+  for (const segment of path.split("/").filter(Boolean)) {
+    current += `/${segment}`;
+    segments.push(current);
+  }
+  segments.reverse();
+
+  // [...guard]s are evaluated from top to bottom
+  for (let i = segments.length - 1; i >= 0; i--) {
+    routes.push(`${segments[i]}/[...guard]`);
+  }
 
   // "/a/b/c" => ["/a/b/[c]", "/a/b/c/[index]"]
-  const edges = generateEdges(segments[0]);
-
-  return [
-    ...segments
-      .toReversed() // [...guard]s are evaluated from top to bottom
-      .map((segment) => `${segment}/[...guard]`),
-    ...edges.map((edge) => `${edge}`),
-    ...segments.map((segment) => `${segment}/[...path]`),
-    ...segments.map((segment) => `${segment}/[404]`),
-  ];
-}
-
-/**
- * Transforms a given path into an array of all its segments.
- *
- * @example
- * generateSegments("/a/b/c") => ["/a/b/c", "/a/b", "/a", ""]
- */
-function generateSegments(path: string): string[] {
-  return path
-    .split("/")
-    .filter((segment) => segment !== "")
-    .reduce((acc, segment) => {
-      acc.push((acc.length > 0 ? acc[acc.length - 1] : "") + "/" + segment);
-      return acc;
-    }, [])
-    .reverse()
-    .concat("");
-}
-
-/**
- * Generates edge routes for the given input path.
- *
- * An edge is either a route with a named segment (e.g. "/a/b/[c]")
- * or a route with an "index" segment (e.g. "/a/b/c/[index]").
- */
-function generateEdges(path: string): string[] {
-  const edges = [];
-  if (path) {
-    const lastSegment = path.lastIndexOf("/") + 1;
-    edges.push(`${path.substring(0, lastSegment)}[${path.substring(lastSegment)}]`);
+  const edgeSegment = segments[0];
+  const lastSlash = edgeSegment.lastIndexOf("/") + 1;
+  if (lastSlash > 0) {
+    routes.push(`${edgeSegment.substring(0, lastSlash)}[${edgeSegment.substring(lastSlash)}]`);
   }
-  edges.push(`${path}/[index]`);
-  return edges;
+  routes.push(`${edgeSegment}/[index]`);
+
+  for (let i = 0; i < segments.length; i++) {
+    routes.push(`${segments[i]}/[...path]`);
+  }
+
+  for (let i = 0; i < segments.length; i++) {
+    routes.push(`${segments[i]}/[404]`);
+  }
+
+  return routes;
 }
 
 /**

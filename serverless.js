@@ -11,11 +11,11 @@ env();
 const CWD = process.cwd();
 const CONFIG = (await import(`file://${join(CWD, "jeasx.config.js")}`)).default;
 const NODE_ENV_IS_DEVELOPMENT = process.env.NODE_ENV === "development";
-const MODULE_BY_ROUTE = /* @__PURE__ */ new Map();
+const MODULE_BY_ROUTE = {};
 if (!NODE_ENV_IS_DEVELOPMENT) {
   const { routes } = (await import(`file://${join(CWD, "dist", "[--metadata--].js")}`)).default;
   for (const route of routes) {
-    MODULE_BY_ROUTE.set(route, null);
+    MODULE_BY_ROUTE[route] = null;
   }
 }
 const FASTIFY_SERVER = CONFIG.FASTIFY_SERVER ?? ((fastify2) => fastify2);
@@ -34,7 +34,6 @@ var serverless_default = FASTIFY_SERVER(
     root: ["public", "dist"].map((dir) => join(CWD, dir)),
     wildcard: false,
     globIgnore: ["/**/\\[*\\].js?(.map)"],
-    // ignore server routes
     ...CONFIG.FASTIFY_STATIC_OPTIONS?.()
   }).decorateRequest("route", "").decorateRequest("path", "").addHook("onRequest", async (request) => {
     const index = request.url.indexOf("?");
@@ -58,7 +57,7 @@ async function handler(request, reply) {
   const props = { request, reply };
   try {
     for (const route of generateRoutes(request.path)) {
-      let module = MODULE_BY_ROUTE.get(route);
+      let module = MODULE_BY_ROUTE[route];
       if (!NODE_ENV_IS_DEVELOPMENT && module === void 0) {
         continue;
       }
@@ -77,7 +76,7 @@ async function handler(request, reply) {
             }
           } else {
             module = await import(`file://${modulePath}`);
-            MODULE_BY_ROUTE.set(route, module);
+            MODULE_BY_ROUTE[route] = module;
           }
         } catch (e) {
           switch (e.code) {
@@ -91,8 +90,7 @@ async function handler(request, reply) {
         }
       }
       request.route = route;
-      response = // Call functions with 'this' context and props as parameters
-      typeof module.default === "function" ? await module.default.call(context, props) : module.default;
+      response = typeof module.default === "function" ? await module.default.call(context, props) : module.default;
       if (reply.sent) {
         return;
       } else if (route.endsWith("/[404]")) {
@@ -124,29 +122,30 @@ async function handler(request, reply) {
   }
 }
 function generateRoutes(path) {
-  const segments = generateSegments(path);
-  const edges = generateEdges(segments[0]);
-  return [
-    ...segments.toReversed().map((segment) => `${segment}/[...guard]`),
-    ...edges.map((edge) => `${edge}`),
-    ...segments.map((segment) => `${segment}/[...path]`),
-    ...segments.map((segment) => `${segment}/[404]`)
-  ];
-}
-function generateSegments(path) {
-  return path.split("/").filter((segment) => segment !== "").reduce((acc, segment) => {
-    acc.push((acc.length > 0 ? acc[acc.length - 1] : "") + "/" + segment);
-    return acc;
-  }, []).reverse().concat("");
-}
-function generateEdges(path) {
-  const edges = [];
-  if (path) {
-    const lastSegment = path.lastIndexOf("/") + 1;
-    edges.push(`${path.substring(0, lastSegment)}[${path.substring(lastSegment)}]`);
+  const routes = [];
+  const segments = [""];
+  let current = "";
+  for (const segment of path.split("/").filter(Boolean)) {
+    current += `/${segment}`;
+    segments.push(current);
   }
-  edges.push(`${path}/[index]`);
-  return edges;
+  segments.reverse();
+  for (let i = segments.length - 1; i >= 0; i--) {
+    routes.push(`${segments[i]}/[...guard]`);
+  }
+  const edgeSegment = segments[0];
+  const lastSlash = edgeSegment.lastIndexOf("/") + 1;
+  if (lastSlash > 0) {
+    routes.push(`${edgeSegment.substring(0, lastSlash)}[${edgeSegment.substring(lastSlash)}]`);
+  }
+  routes.push(`${edgeSegment}/[index]`);
+  for (let i = 0; i < segments.length; i++) {
+    routes.push(`${segments[i]}/[...path]`);
+  }
+  for (let i = 0; i < segments.length; i++) {
+    routes.push(`${segments[i]}/[404]`);
+  }
+  return routes;
 }
 function isJSX(obj) {
   return !!obj && typeof obj === "object" && "type" in obj && "props" in obj;
