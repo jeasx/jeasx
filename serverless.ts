@@ -20,16 +20,16 @@ const CONFIG = (await import(`file://${join(CWD, "jeasx.config.js")}`)).default;
 const NODE_ENV_IS_DEVELOPMENT = process.env.NODE_ENV === "development";
 
 // Cache for route modules used in non-development environments.
-const MODULE_BY_ROUTE = {};
+const MODULE_BY_ROUTE: Record<string, { default: Function }> = {};
 
 // Initialize the cache with `null` for all known modules.
 // Modules are lazily loaded on their first request for a specific route.
 // Only routes explicitly initialized with `null` will be loaded.
 if (!NODE_ENV_IS_DEVELOPMENT) {
-  const { routes } = (await import(`file://${join(CWD, "dist", "[--metadata--].js")}`)).default;
-  for (const route of routes) {
-    MODULE_BY_ROUTE[route] = null;
-  }
+  const { routes } = (await import(`file://${join(CWD, "dist", "[--metadata--].js")}`)).default as {
+    routes: string[];
+  };
+  routes.forEach((route) => (MODULE_BY_ROUTE[route] = null));
 }
 
 declare module "fastify" {

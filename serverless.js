@@ -14,9 +14,7 @@ const NODE_ENV_IS_DEVELOPMENT = process.env.NODE_ENV === "development";
 const MODULE_BY_ROUTE = {};
 if (!NODE_ENV_IS_DEVELOPMENT) {
   const { routes } = (await import(`file://${join(CWD, "dist", "[--metadata--].js")}`)).default;
-  for (const route of routes) {
-    MODULE_BY_ROUTE[route] = null;
-  }
+  routes.forEach((route) => MODULE_BY_ROUTE[route] = null);
 }
 const FASTIFY_SERVER = CONFIG.FASTIFY_SERVER ?? ((fastify2) => fastify2);
 var serverless_default = FASTIFY_SERVER(
