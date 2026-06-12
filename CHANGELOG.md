@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-06-12 - Jeasx 2.7.3 released
+
+🎉 Routine maintenance release.
+
+Dependency updates: `jsx-async-runtime@2.1.3`, `esbuild@0.28.1`, `@types/node@25.9.3`
+
 ## 2026-06-10 - Jeasx 2.7.2 released
 
 🎉 This release introduces significant performance and memory optimizations:
