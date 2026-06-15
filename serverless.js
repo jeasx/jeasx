@@ -67,11 +67,9 @@ async function handler(request, reply) {
               if (require.cache[modulePath]) {
                 delete require.cache[modulePath];
               }
-              module = await import(`file://${modulePath}`);
-            } else {
-              const mtime = (await stat(modulePath)).mtime.getTime();
-              module = await import(`file://${modulePath}?${mtime}`);
             }
+            const mtime = (await stat(modulePath)).mtime.getTime();
+            module = await import(`file://${modulePath}?${mtime}`);
           } else {
             module = await import(`file://${modulePath}`);
             MODULE_BY_ROUTE[route] = module;

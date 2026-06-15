@@ -124,16 +124,14 @@ async function handler(request: FastifyRequest, reply: FastifyReply) {
           if (NODE_ENV_IS_DEVELOPMENT) {
             if (typeof require === "function") {
               // Bun: Remove module from cache before importing
-              // as query parameter for import is ignored (see Node).
+              // as query parameter for import is ignored.
               if (require.cache[modulePath]) {
                 delete require.cache[modulePath];
               }
-              module = await import(`file://${modulePath}`);
-            } else {
-              // Node: Use timestamp as query parameter to update modules.
-              const mtime = (await stat(modulePath)).mtime.getTime();
-              module = await import(`file://${modulePath}?${mtime}`);
             }
+            // Use timestamp as query parameter to update modules.
+            const mtime = (await stat(modulePath)).mtime.getTime();
+            module = await import(`file://${modulePath}?${mtime}`);
           } else {
             // Load and cache module for non-development
             module = await import(`file://${modulePath}`);
