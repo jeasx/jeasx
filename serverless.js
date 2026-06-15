@@ -63,10 +63,8 @@ async function handler(request, reply) {
         try {
           const modulePath = join(CWD, "dist", `${route}.js`);
           if (NODE_ENV_IS_DEVELOPMENT) {
-            if (typeof require === "function") {
-              if (require.cache[modulePath]) {
-                delete require.cache[modulePath];
-              }
+            if (typeof require === "function" && require.cache[modulePath]) {
+              delete require.cache[modulePath];
             }
             const mtime = (await stat(modulePath)).mtime.getTime();
             module = await import(`file://${modulePath}?${mtime}`);

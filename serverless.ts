@@ -122,12 +122,10 @@ async function handler(request: FastifyRequest, reply: FastifyReply) {
         try {
           const modulePath = join(CWD, "dist", `${route}.js`);
           if (NODE_ENV_IS_DEVELOPMENT) {
-            if (typeof require === "function") {
+            if (typeof require === "function" && require.cache[modulePath]) {
               // Bun: Remove module from cache before importing
               // as query parameter for import is ignored.
-              if (require.cache[modulePath]) {
-                delete require.cache[modulePath];
-              }
+              delete require.cache[modulePath];
             }
             // Use timestamp as query parameter to update modules.
             const mtime = (await stat(modulePath)).mtime.getTime();
