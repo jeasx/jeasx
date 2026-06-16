@@ -117,14 +117,11 @@ async function handler(request, reply) {
 }
 function generateRoutes(path) {
   const routes = [];
-  const segments = [];
-  let nextSlash = path.indexOf("/");
-  while (nextSlash !== -1) {
-    segments.push(path.substring(0, nextSlash));
-    nextSlash = path.indexOf("/", nextSlash + 1);
-  }
-  if (path !== "/") {
-    segments.push(path);
+  const segments = [""];
+  let current = "";
+  for (const segment of path.split("/").filter(Boolean)) {
+    current += `/${segment}`;
+    segments.push(current);
   }
   segments.reverse();
   for (let i = segments.length - 1; i >= 0; i--) {
