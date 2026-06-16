@@ -214,9 +214,11 @@ function generateRoutes(path: string): string[] {
   // "/a/b/c" => ["/a/b/c", "/a/b", "/a", ""]
   const segments = [""];
   let current = "";
-  for (const segment of path.split("/").filter(Boolean)) {
-    current += `/${segment}`;
-    segments.push(current);
+  for (const segment of path.split("/")) {
+    if (segment !== "") {
+      current += `/${segment}`;
+      segments.push(current);
+    }
   }
   segments.reverse();
 

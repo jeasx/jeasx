@@ -119,9 +119,11 @@ function generateRoutes(path) {
   const routes = [];
   const segments = [""];
   let current = "";
-  for (const segment of path.split("/").filter(Boolean)) {
-    current += `/${segment}`;
-    segments.push(current);
+  for (const segment of path.split("/")) {
+    if (segment !== "") {
+      current += `/${segment}`;
+      segments.push(current);
+    }
   }
   segments.reverse();
   for (let i = segments.length - 1; i >= 0; i--) {
