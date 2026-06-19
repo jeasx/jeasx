@@ -14,7 +14,9 @@ const NODE_ENV_IS_DEVELOPMENT = process.env.NODE_ENV === "development";
 const MODULE_BY_ROUTE = {};
 if (!NODE_ENV_IS_DEVELOPMENT) {
   const { routes } = (await import(`file://${join(CWD, "dist", "[--metadata--].js")}`)).default;
-  routes.forEach((route) => MODULE_BY_ROUTE[route] = null);
+  for (const route of routes) {
+    MODULE_BY_ROUTE[route] = `file://${join(CWD, "dist", `${route}.js`)}`;
+  }
 }
 const FASTIFY_SERVER = CONFIG.FASTIFY_SERVER ?? ((fastify2) => fastify2);
 var serverless_default = FASTIFY_SERVER(
@@ -59,32 +61,38 @@ async function handler(request, reply) {
       if (module === void 0 && !NODE_ENV_IS_DEVELOPMENT) {
         continue;
       }
-      if (module === null || NODE_ENV_IS_DEVELOPMENT && module === void 0) {
-        try {
+      try {
+        if (typeof module === "string") {
+          module = MODULE_BY_ROUTE[route] = await import(module);
+        } else if (module === void 0 && NODE_ENV_IS_DEVELOPMENT) {
           const modulePath = join(CWD, "dist", `${route}.js`);
-          if (NODE_ENV_IS_DEVELOPMENT) {
-            if (typeof require === "function" && require.cache[modulePath]) {
-              delete require.cache[modulePath];
-            }
-            const mtime = (await stat(modulePath)).mtime.getTime();
-            module = await import(`file://${modulePath}?${mtime}`);
-          } else {
-            module = await import(`file://${modulePath}`);
-            MODULE_BY_ROUTE[route] = module;
+          if (typeof require === "function" && require.cache[modulePath]) {
+            delete require.cache[modulePath];
           }
-        } catch (e) {
-          switch (e.code) {
-            case "ENOENT":
-            case "ENOTDIR":
-            case "ERR_MODULE_NOT_FOUND":
-              continue;
-            default:
-              throw e;
-          }
+          const mtime = (await stat(modulePath)).mtime.getTime();
+          module = await import(`file://${modulePath}?${mtime}`);
+        }
+      } catch (e) {
+        switch (e.code) {
+          case "ENOENT":
+          case "ENOTDIR":
+          case "ERR_MODULE_NOT_FOUND":
+            continue;
+          default:
+            throw e;
         }
       }
+      if (typeof module !== "object" || module === null) {
+        continue;
+      }
       request.route = route;
-      response = typeof module.default === "function" ? await module.default.call(context, props) : module.default;
+      response = typeof module.default === "function" ? (
+        // Call functions with context as `this` and props as parameters,
+        await module.default.call(context, props)
+      ) : (
+        // otherwise return default export.
+        module.default
+      );
       if (reply.sent) {
         return;
       } else if (route.endsWith("/[404]")) {

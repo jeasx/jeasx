@@ -19,17 +19,19 @@ const CWD = process.cwd();
 const CONFIG = (await import(`file://${join(CWD, "jeasx.config.js")}`)).default;
 const NODE_ENV_IS_DEVELOPMENT = process.env.NODE_ENV === "development";
 
-// Cache for route modules used in non-development environments.
-const MODULE_BY_ROUTE: Record<string, { default: Function }> = {};
+// Mapping for route modules used in non-development environments.
+const MODULE_BY_ROUTE: Record<string, { default: Function } | string> = {};
 
-// Initialize the cache with `null` for all known modules.
+// Initialize the mapping with absolute paths for all known modules.
 // Modules are lazily loaded on their first request for a specific route.
-// Only routes explicitly initialized with `null` will be loaded.
 if (!NODE_ENV_IS_DEVELOPMENT) {
   const { routes } = (await import(`file://${join(CWD, "dist", "[--metadata--].js")}`)).default as {
     routes: string[];
   };
-  routes.forEach((route) => (MODULE_BY_ROUTE[route] = null));
+  // Map route identifiers to their absolute file system paths in the build directory.
+  for (const route of routes) {
+    MODULE_BY_ROUTE[route] = `file://${join(CWD, "dist", `${route}.js`)}`;
+  }
 }
 
 declare module "fastify" {
@@ -107,56 +109,61 @@ async function handler(request: FastifyRequest, reply: FastifyReply) {
   try {
     // Execute route handlers for current request
     for (const route of generateRoutes(request.path)) {
-      // Resolve module via cache
+      // Resolve module or path to module
       let module = MODULE_BY_ROUTE[route];
 
-      // Skip loading the module if the route path was not initialized.
-      // This avoids potential path traversal vulnerabilities caused
-      // by unexpected `route` values.
+      // Skip processing if the route path was not initialized.
       if (module === undefined && !NODE_ENV_IS_DEVELOPMENT) {
         continue;
       }
 
       // Module was not loaded yet?
-      if (module === null || (NODE_ENV_IS_DEVELOPMENT && module === undefined)) {
-        try {
+      try {
+        if (typeof module === "string") {
+          // Production: Load and cache module only via pre-calculated path.
+          // This avoids potential path traversal vulnerabilities caused
+          // by unexpected `route` values.
+          module = MODULE_BY_ROUTE[route] = await import(module);
+        } else if (module === undefined && NODE_ENV_IS_DEVELOPMENT) {
+          // Only map module paths depending on `route` during development.
           const modulePath = join(CWD, "dist", `${route}.js`);
-          if (NODE_ENV_IS_DEVELOPMENT) {
-            if (typeof require === "function" && require.cache[modulePath]) {
-              // Bun: Remove module from cache before importing
-              // as query parameter for import is ignored.
-              delete require.cache[modulePath];
-            }
-            // Use timestamp as query parameter to update modules.
-            const mtime = (await stat(modulePath)).mtime.getTime();
-            module = await import(`file://${modulePath}?${mtime}`);
-          } else {
-            // Load and cache module for non-development
-            module = await import(`file://${modulePath}`);
-            MODULE_BY_ROUTE[route] = module;
+          if (typeof require === "function" && require.cache[modulePath]) {
+            // Bun: Remove module from cache before importing
+            // as query parameter for import is ignored.
+            delete require.cache[modulePath];
           }
-        } catch (e) {
-          switch (e.code) {
-            case "ENOENT":
-            case "ENOTDIR":
-            case "ERR_MODULE_NOT_FOUND":
-              continue;
-            default:
-              // Module exists, but fails to load.
-              throw e;
-          }
+          // Use timestamp as query parameter to update modules.
+          const mtime = (await stat(modulePath)).mtime.getTime();
+          // Dynamic imports are restricted to development environments;
+          // therefore, production-level path validation is not required here.
+          module = await import(`file://${modulePath}?${mtime}`);
+        }
+      } catch (e) {
+        switch (e.code) {
+          case "ENOENT":
+          case "ENOTDIR":
+          case "ERR_MODULE_NOT_FOUND":
+            continue;
+          default:
+            // Module exists, but fails to load.
+            throw e;
         }
       }
 
-      // Store current route in request
+      // Ensure module is a valid object before processing.
+      if (typeof module !== "object" || module === null) {
+        continue;
+      }
+
+      // Store current route in request.
       request.route = route;
 
-      // Call functions with 'this' context and props as parameters
-      // otherwise return default export
       response =
         typeof module.default === "function"
-          ? await module.default.call(context, props)
-          : module.default;
+          ? // Call functions with context as `this` and props as parameters,
+            await module.default.call(context, props)
+          : // otherwise return default export.
+            module.default;
 
       if (reply.sent) {
         return;
@@ -215,6 +222,7 @@ function generateRoutes(path: string): string[] {
   const segments = [""];
   let current = "";
   for (const segment of path.split("/")) {
+    // Ignore redundant slashes.
     if (segment !== "") {
       current += `/${segment}`;
       segments.push(current);
