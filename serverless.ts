@@ -151,7 +151,7 @@ async function handler(request: FastifyRequest, reply: FastifyReply) {
       }
 
       // Ensure module is a valid object before processing.
-      if (typeof module !== "object" || module === null) {
+      if (!module || typeof module !== "object") {
         continue;
       }
 

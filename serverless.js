@@ -82,7 +82,7 @@ async function handler(request, reply) {
             throw e;
         }
       }
-      if (typeof module !== "object" || module === null) {
+      if (!module || typeof module !== "object") {
         continue;
       }
       request.route = route;
