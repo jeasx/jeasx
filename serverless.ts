@@ -30,7 +30,7 @@ if (!NODE_ENV_IS_DEVELOPMENT) {
   };
   // Map route identifiers to their absolute file system paths in the build directory.
   for (const route of routes) {
-    MODULE_BY_ROUTE[route] = `file://${join(CWD, "dist", `${route}.js`)}`;
+    MODULE_BY_ROUTE[route] = join(CWD, "dist", `${route}.js`);
   }
 }
 
@@ -123,7 +123,7 @@ async function handler(request: FastifyRequest, reply: FastifyReply) {
           // Production: Load and cache module only via pre-calculated path.
           // This avoids potential path traversal vulnerabilities caused
           // by unexpected `route` values.
-          module = MODULE_BY_ROUTE[route] = await import(module);
+          module = MODULE_BY_ROUTE[route] = await import(`file://${module}`);
         } else if (module === undefined && NODE_ENV_IS_DEVELOPMENT) {
           // Only map module paths depending on `route` during development.
           const modulePath = join(CWD, "dist", `${route}.js`);

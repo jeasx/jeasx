@@ -15,7 +15,7 @@ const MODULE_BY_ROUTE = {};
 if (!NODE_ENV_IS_DEVELOPMENT) {
   const { routes } = (await import(`file://${join(CWD, "dist", "[--metadata--].js")}`)).default;
   for (const route of routes) {
-    MODULE_BY_ROUTE[route] = `file://${join(CWD, "dist", `${route}.js`)}`;
+    MODULE_BY_ROUTE[route] = join(CWD, "dist", `${route}.js`);
   }
 }
 const FASTIFY_SERVER = CONFIG.FASTIFY_SERVER ?? ((fastify2) => fastify2);
@@ -63,7 +63,7 @@ async function handler(request, reply) {
       }
       try {
         if (typeof module === "string") {
-          module = MODULE_BY_ROUTE[route] = await import(module);
+          module = MODULE_BY_ROUTE[route] = await import(`file://${module}`);
         } else if (module === void 0 && NODE_ENV_IS_DEVELOPMENT) {
           const modulePath = join(CWD, "dist", `${route}.js`);
           if (typeof require === "function" && require.cache[modulePath]) {
