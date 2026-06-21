@@ -10,15 +10,9 @@ import { existsSync } from "node:fs";
  * 5. .env.defaults
  */
 export default function env() {
-  if (process.loadEnvFile) {
-    [
-      ...(process.env.NODE_ENV
-        ? [`.env.${process.env.NODE_ENV}.local`, `.env.${process.env.NODE_ENV}`]
-        : []),
-      ".env.local",
-      ".env",
-      ".env.defaults",
-    ]
+  if (typeof process.loadEnvFile === "function") {
+    const env = process.env.NODE_ENV;
+    [...(env ? [`.env.${env}.local`, `.env.${env}`] : []), ".env.local", ".env", ".env.defaults"]
       .filter(existsSync)
       .forEach(process.loadEnvFile);
   }
