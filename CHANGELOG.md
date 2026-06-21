@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-06-21 - Jeasx 2.7.4 released
+
+🎉 Introduced pre-calculation of all module paths during server startup for production environments. This provides a robust defense against path traversal attacks from malformed requests, even in scenarios where Fastify’s built-in path sanitization might fail.
+
+Optimized path processing by skipping empty segments directly, removing the overhead of filtering segments into new arrays before iteration.
+
+Improved the module loading logic for development mode to ensure better compatibility with Node.js and alternative JavaScript runtimes like Bun.
+
+Dependency updates: `@types/node@26.0.0`
+
 ## 2026-06-12 - Jeasx 2.7.3 released
 
 🎉 Routine maintenance release.
