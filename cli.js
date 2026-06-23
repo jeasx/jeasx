@@ -32,7 +32,7 @@ async function start() {
 }
 
 async function build() {
-  await import("./esbuild.config.js");
+  await import("./build.js");
 }
 
 async function dev() {
