@@ -24,7 +24,7 @@
     "jeasx": "cli.js"
   },
   "type": "module",
-  "main": "server.js",
+  "main": "start.js",
   "scripts": {
     "build": "esbuild --platform=node --format=esm --sourcemap=linked --outdir=. serverless.ts"
   },
