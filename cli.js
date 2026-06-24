@@ -28,7 +28,7 @@ switch (process.argv[2]) {
 }
 
 async function start() {
-  await import("./server.js");
+  await import("./start.js");
 }
 
 async function build() {
