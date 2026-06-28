@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-06-28 - Jeasx 2.7.5 released
+
+🎉 This release focuses on internal improvements and codebase organization. I have renamed `esbuild.config.js` to `build.js` and `server.js` to `start.js` to more accurately reflect their roles within `cli.js`. The renamed scripts are intended for internal use and should not be called directly. If your current workflow requires calling them, please update your project configuration accordingly.
+
+Additionally, minor refactorings were applied to `cli.js` and `env.js` to improve maintainability.
+
+Dependency updates: `fastify@5.9.0`, `@types/node@26.0.1`
+
 ## 2026-06-21 - Jeasx 2.7.4 released
 
 🎉 Introduced pre-calculation of all module paths during server startup for production environments. This provides a robust defense against path traversal attacks from malformed requests, even in scenarios where Fastify’s built-in path sanitization might fail.
