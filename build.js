@@ -1,6 +1,6 @@
 import * as esbuild from "esbuild";
-import { writeFile } from "node:fs/promises";
-import { join } from "node:path";
+import { glob, stat, writeFile } from "node:fs/promises";
+import { join, sep } from "node:path";
 import env from "./env.js";
 
 env();
@@ -54,22 +54,43 @@ const BROWSER_OPTIONS = {
   ...CONFIG.ESBUILD_BROWSER_OPTIONS?.(),
 };
 
-[SERVER_OPTIONS, BROWSER_OPTIONS].forEach(async (options) => {
+for (const options of [SERVER_OPTIONS, BROWSER_OPTIONS]) {
   if (NODE_ENV_IS_DEVELOPMENT) {
     (await esbuild.context(options)).watch();
   } else {
-    const result = await esbuild.build(options);
-    if (options === SERVER_OPTIONS) {
-      // Create metadata file with all routes
-      if (result.metafile?.outputs) {
-        const routes = Object.keys(result.metafile.outputs)
-          .filter((path) => /\[.+\]\.js$/.test(path))
-          .map((path) => path.slice("dist".length, -".js".length));
-        await writeFile(
-          join(CWD, "dist", "[--metadata--].js"),
-          `export default ${JSON.stringify({ routes })};`,
-        );
-      }
+    await esbuild.build(options);
+  }
+}
+
+// Export path mappings for routes and files
+if (!NODE_ENV_IS_DEVELOPMENT) {
+  /** @type Record<string,string> */
+  const routes = {};
+  /** @type Record<string,string> */
+  const files = {};
+
+  for await (const entry of glob("{dist,public}/**/*")) {
+    const path = entry.split(sep).join("/");
+
+    // Handle server routes.
+    if (/^dist\/.*\[.+\]\.js$/.test(path)) {
+      routes[path.slice("dist".length, ".js".length)] = path;
+      continue;
+    }
+
+    // Skip sourcemaps for server routes.
+    if (/^dist\/.*\[.+\]\.js\.map$/.test(path)) {
+      continue;
+    }
+
+    // Treat all other entries as static files.
+    if ((await stat(join(CWD, path))).isFile()) {
+      files[path.slice(path.indexOf("/"))] = path;
     }
   }
-});
+
+  await writeFile(
+    join(CWD, "dist", "[--metadata--].js"),
+    `export default ${JSON.stringify({ routes, files })};`,
+  );
+}

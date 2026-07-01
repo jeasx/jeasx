@@ -1,23 +1,21 @@
 import fastifyCookie from "@fastify/cookie";
 import fastifyFormbody from "@fastify/formbody";
 import fastifyMultipart from "@fastify/multipart";
-import fastifyStatic from "@fastify/static";
+import fastifySend from "@fastify/send";
 import fastify from "fastify";
 import { jsxToString } from "jsx-async-runtime";
 import { stat } from "node:fs/promises";
 import { join } from "node:path";
+import { Readable } from "node:stream";
 import env from "./env.js";
 env();
 const CWD = process.cwd();
 const CONFIG = (await import(`file://${join(CWD, "jeasx.config.js")}`)).default;
 const NODE_ENV_IS_DEVELOPMENT = process.env.NODE_ENV === "development";
-const MODULE_BY_ROUTE = {};
-if (!NODE_ENV_IS_DEVELOPMENT) {
-  const { routes } = (await import(`file://${join(CWD, "dist", "[--metadata--].js")}`)).default;
-  for (const route of routes) {
-    MODULE_BY_ROUTE[route] = join(CWD, "dist", `${route}.js`);
-  }
-}
+const { routes: MODULE_BY_ROUTE, files: FILE_BY_PATH } = NODE_ENV_IS_DEVELOPMENT ? { routes: {}, files: {} } : (await import(`file://${join(CWD, "dist", "[--metadata--].js")}`)).default;
+const FASTIFY_SEND_OPTIONS = {
+  ...CONFIG.FASTIFY_SEND_OPTIONS?.()
+};
 const FASTIFY_SERVER = CONFIG.FASTIFY_SERVER ?? ((fastify2) => fastify2);
 var serverless_default = FASTIFY_SERVER(
   fastify({
@@ -30,11 +28,6 @@ var serverless_default = FASTIFY_SERVER(
     ...CONFIG.FASTIFY_FORMBODY_OPTIONS?.()
   }).register(fastifyMultipart, {
     ...CONFIG.FASTIFY_MULTIPART_OPTIONS?.()
-  }).register(fastifyStatic, {
-    root: ["public", "dist"].map((dir) => join(CWD, dir)),
-    wildcard: false,
-    globIgnore: ["/**/\\[*\\].js?(.map)"],
-    ...CONFIG.FASTIFY_STATIC_OPTIONS?.()
   }).decorateRequest("route", "").decorateRequest("path", "").addHook("onRequest", async (request) => {
     const index = request.url.indexOf("?");
     request.path = index === -1 ? request.url : request.url.slice(0, index);
@@ -57,13 +50,23 @@ async function handler(request, reply) {
   const props = { request, reply };
   try {
     for (const route of generateRoutes(request.path)) {
+      if (route === request.path) {
+        const sendResult = await tryFile(request);
+        if (sendResult) {
+          reply.status(sendResult.statusCode);
+          reply.headers(sendResult.headers);
+          response = sendResult.stream;
+          break;
+        }
+        continue;
+      }
       let module = MODULE_BY_ROUTE[route];
       if (module === void 0 && !NODE_ENV_IS_DEVELOPMENT) {
         continue;
       }
       try {
         if (typeof module === "string") {
-          module = MODULE_BY_ROUTE[route] = await import(`file://${module}`);
+          module = MODULE_BY_ROUTE[route] = await import(`file://${join(CWD, module)}`);
         } else if (module === void 0 && NODE_ENV_IS_DEVELOPMENT) {
           const modulePath = join(CWD, "dist", `${route}.js`);
           if (typeof require === "function" && require.cache[modulePath]) {
@@ -82,17 +85,16 @@ async function handler(request, reply) {
             throw e;
         }
       }
-      if (!module || typeof module !== "object") {
-        continue;
-      }
       request.route = route;
-      response = typeof module.default === "function" ? (
-        // Call functions with context as `this` and props as parameters,
-        await module.default.call(context, props)
-      ) : (
-        // otherwise return default export.
-        module.default
-      );
+      if (module && typeof module === "object") {
+        response = typeof module.default === "function" ? (
+          // Call functions with context as `this` and props as parameters,
+          await module.default.call(context, props)
+        ) : (
+          // otherwise return default export.
+          module.default
+        );
+      }
       if (reply.sent) {
         return;
       } else if (route.endsWith("/[404]")) {
@@ -100,7 +102,7 @@ async function handler(request, reply) {
           reply.status(404);
         }
         break;
-      } else if (typeof response === "string" || Buffer.isBuffer(response) || isJSX(response)) {
+      } else if (typeof response === "string" || response instanceof Readable || Buffer.isBuffer(response) || isJSX(response)) {
         break;
       } else if (route.endsWith("/[...guard]") && (response === void 0 || typeof response === "object")) {
         Object.assign(props, response);
@@ -111,13 +113,13 @@ async function handler(request, reply) {
         break;
       }
     }
-    return await renderJSX(context, response);
+    return await renderResponse(context, response);
   } catch (error) {
     const errorHandler = context["errorHandler"];
     if (typeof errorHandler === "function") {
       reply.status(500);
       response = await errorHandler.call(context, error);
-      return await renderJSX(context, response);
+      return await renderResponse(context, response);
     } else {
       throw error;
     }
@@ -146,6 +148,7 @@ function generateRoutes(path) {
   for (let i = 0; i < segments.length; i++) {
     routes.push(`${segments[i]}/[...path]`);
   }
+  routes.push(path);
   for (let i = 0; i < segments.length; i++) {
     routes.push(`${segments[i]}/[404]`);
   }
@@ -154,10 +157,32 @@ function generateRoutes(path) {
 function isJSX(obj) {
   return !!obj && typeof obj === "object" && "type" in obj && "props" in obj;
 }
-async function renderJSX(context, response) {
+async function renderResponse(context, response) {
   const payload = isJSX(response) ? await jsxToString.call(context, response) : response;
   const responseHandler = context["responseHandler"];
   return typeof responseHandler === "function" ? await responseHandler.call(context, payload) : payload;
+}
+async function tryFile(request) {
+  const file = FILE_BY_PATH[request.path];
+  if (file) {
+    return await fastifySend(request.raw, file, FASTIFY_SEND_OPTIONS);
+  }
+  if (NODE_ENV_IS_DEVELOPMENT) {
+    for (const directory of ["dist", "public"]) {
+      try {
+        if ((await stat(join(CWD, directory, request.path))).isFile()) {
+          return await fastifySend(
+            request.raw,
+            `${directory}${request.path}`,
+            FASTIFY_SEND_OPTIONS
+          );
+        }
+      } catch {
+        continue;
+      }
+    }
+  }
+  return void 0;
 }
 export {
   serverless_default as default

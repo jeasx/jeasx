@@ -1,7 +1,7 @@
 import fastifyCookie, { FastifyCookieOptions } from "@fastify/cookie";
 import fastifyFormbody, { FastifyFormbodyOptions } from "@fastify/formbody";
 import fastifyMultipart, { FastifyMultipartOptions } from "@fastify/multipart";
-import fastifyStatic, { FastifyStaticOptions } from "@fastify/static";
+import fastifySend, { SendOptions, SendResult } from "@fastify/send";
 import fastify, {
   FastifyInstance,
   FastifyReply,
@@ -11,6 +11,7 @@ import fastify, {
 import { jsxToString } from "jsx-async-runtime";
 import { stat } from "node:fs/promises";
 import { join } from "node:path";
+import { Readable } from "node:stream";
 import env from "./env.js";
 
 env();
@@ -19,20 +20,15 @@ const CWD = process.cwd();
 const CONFIG = (await import(`file://${join(CWD, "jeasx.config.js")}`)).default;
 const NODE_ENV_IS_DEVELOPMENT = process.env.NODE_ENV === "development";
 
-// Mapping for route modules used in non-development environments.
-const MODULE_BY_ROUTE: Record<string, { default: Function } | string> = {};
-
-// Initialize the mapping with absolute paths for all known modules.
-// Modules are lazily loaded on their first request for a specific route.
-if (!NODE_ENV_IS_DEVELOPMENT) {
-  const { routes } = (await import(`file://${join(CWD, "dist", "[--metadata--].js")}`)).default as {
-    routes: string[];
-  };
-  // Map route identifiers to their absolute file system paths in the build directory.
-  for (const route of routes) {
-    MODULE_BY_ROUTE[route] = join(CWD, "dist", `${route}.js`);
-  }
-}
+// Map routes and files for non-development environments from metadata export.
+// Module paths are initialized at startup but overwritten
+// with resolved modules upon the first request.
+const { routes: MODULE_BY_ROUTE, files: FILE_BY_PATH } = NODE_ENV_IS_DEVELOPMENT
+  ? { routes: {}, files: {} }
+  : ((await import(`file://${join(CWD, "dist", "[--metadata--].js")}`)).default as {
+      routes: Record<string, string | { default: Function }>;
+      files: Record<string, string>;
+    });
 
 declare module "fastify" {
   interface FastifyRequest {
@@ -40,6 +36,10 @@ declare module "fastify" {
     route: string; // Path to resolved route handler
   }
 }
+
+const FASTIFY_SEND_OPTIONS = {
+  ...(CONFIG.FASTIFY_SEND_OPTIONS?.() as SendOptions),
+};
 
 // Enhance Fastify server from userland
 const FASTIFY_SERVER = (CONFIG.FASTIFY_SERVER ?? ((fastify) => fastify)) as (
@@ -63,12 +63,6 @@ export default FASTIFY_SERVER(
       })
       .register(fastifyMultipart, {
         ...(CONFIG.FASTIFY_MULTIPART_OPTIONS?.() as FastifyMultipartOptions),
-      })
-      .register(fastifyStatic, {
-        root: ["public", "dist"].map((dir) => join(CWD, dir)),
-        wildcard: false,
-        globIgnore: ["/**/\\[*\\].js?(.map)"],
-        ...(CONFIG.FASTIFY_STATIC_OPTIONS?.() as FastifyStaticOptions),
       })
       .decorateRequest("route", "")
       .decorateRequest("path", "")
@@ -109,6 +103,18 @@ async function handler(request: FastifyRequest, reply: FastifyReply) {
   try {
     // Execute route handlers for current request
     for (const route of generateRoutes(request.path)) {
+      // Try to serve static file when route matches path.
+      if (route === request.path) {
+        const sendResult = await tryFile(request);
+        if (sendResult) {
+          reply.status(sendResult.statusCode);
+          reply.headers(sendResult.headers);
+          response = sendResult.stream;
+          break;
+        }
+        continue;
+      }
+
       // Resolve module or path to module
       let module = MODULE_BY_ROUTE[route];
 
@@ -123,7 +129,7 @@ async function handler(request: FastifyRequest, reply: FastifyReply) {
           // Production: Load and cache module only via pre-calculated path.
           // This avoids potential path traversal vulnerabilities caused
           // by unexpected `route` values.
-          module = MODULE_BY_ROUTE[route] = await import(`file://${module}`);
+          module = MODULE_BY_ROUTE[route] = await import(`file://${join(CWD, module)}`);
         } else if (module === undefined && NODE_ENV_IS_DEVELOPMENT) {
           // Only map module paths depending on `route` during development.
           const modulePath = join(CWD, "dist", `${route}.js`);
@@ -150,20 +156,18 @@ async function handler(request: FastifyRequest, reply: FastifyReply) {
         }
       }
 
-      // Ensure module is a valid object before processing.
-      if (!module || typeof module !== "object") {
-        continue;
-      }
-
       // Store current route in request.
       request.route = route;
 
-      response =
-        typeof module.default === "function"
-          ? // Call functions with context as `this` and props as parameters,
-            await module.default.call(context, props)
-          : // otherwise return default export.
-            module.default;
+      // Ensure module is a valid object before processing.
+      if (module && typeof module === "object") {
+        response =
+          typeof module.default === "function"
+            ? // Call functions with context as `this` and props as parameters,
+              await module.default.call(context, props)
+            : // otherwise return default export.
+              module.default;
+      }
 
       if (reply.sent) {
         return;
@@ -174,7 +178,12 @@ async function handler(request: FastifyRequest, reply: FastifyReply) {
           reply.status(404);
         }
         break;
-      } else if (typeof response === "string" || Buffer.isBuffer(response) || isJSX(response)) {
+      } else if (
+        typeof response === "string" ||
+        response instanceof Readable ||
+        Buffer.isBuffer(response) ||
+        isJSX(response)
+      ) {
         break;
       } else if (
         route.endsWith("/[...guard]") &&
@@ -189,13 +198,14 @@ async function handler(request: FastifyRequest, reply: FastifyReply) {
         break;
       }
     }
-    return await renderJSX(context, response);
+
+    return await renderResponse(context, response);
   } catch (error) {
     const errorHandler = context["errorHandler"];
     if (typeof errorHandler === "function") {
       reply.status(500);
       response = await errorHandler.call(context, error);
-      return await renderJSX(context, response);
+      return await renderResponse(context, response);
     } else {
       throw error;
     }
@@ -211,6 +221,7 @@ async function handler(request: FastifyRequest, reply: FastifyReply) {
  *  "/[...guard]","/a/[...guard]","/a/b/[...guard]","/a/b/c/[...guard]",
  *  "/a/b/[c]","/a/b/c/[index]",
  *  "/a/b/c/[...path]","/a/b/[...path]","/a/[...path]","/[...path]",
+ *  "/a/b/c",
  *  "/a/b/c/[404]","/a/b/[404]","/a/[404]","/[404]"
  * ]
  */
@@ -247,6 +258,9 @@ function generateRoutes(path: string): string[] {
     routes.push(`${segments[i]}/[...path]`);
   }
 
+  // Append the verbatim path for static file serving.
+  routes.push(path);
+
   for (let i = 0; i < segments.length; i++) {
     routes.push(`${segments[i]}/[404]`);
   }
@@ -264,7 +278,7 @@ function isJSX(obj: unknown): boolean {
 /**
  * Renders JSX to string and applies optional response handler.
  */
-async function renderJSX(context: object, response: unknown) {
+async function renderResponse(context: object, response: unknown) {
   const payload = isJSX(response) ? await jsxToString.call(context, response) : response;
 
   // Post-process the payload with an optional response handler
@@ -272,4 +286,37 @@ async function renderJSX(context: object, response: unknown) {
   return typeof responseHandler === "function"
     ? await responseHandler.call(context, payload)
     : payload;
+}
+
+/**
+ * Returns stream and metadata for requested file.
+ */
+async function tryFile(request: FastifyRequest): Promise<SendResult> | undefined {
+  // Production: Retrieve files only from pre-initialized mapping.
+  // This avoids potential path traversal vulnerabilities caused
+  // by unexpected `request.path` values.
+  const file = FILE_BY_PATH[request.path];
+  if (file) {
+    return await fastifySend(request.raw, file, FASTIFY_SEND_OPTIONS);
+  }
+
+  if (NODE_ENV_IS_DEVELOPMENT) {
+    for (const directory of ["dist", "public"]) {
+      try {
+        if ((await stat(join(CWD, directory, request.path))).isFile()) {
+          // Dynamic path loading is restricted to development environments;
+          // therefore, production-level path validation is not required here.
+          return await fastifySend(
+            request.raw,
+            `${directory}${request.path}`,
+            FASTIFY_SEND_OPTIONS,
+          );
+        }
+      } catch {
+        continue;
+      }
+    }
+  }
+
+  return undefined;
 }
