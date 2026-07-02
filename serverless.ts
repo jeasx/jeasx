@@ -226,20 +226,19 @@ function generateRoutes(path: string): string[] {
   const routes = [];
 
   // Transform given path into array of all its segments.
-  // "/a/b/c" => ["/a/b/c", "/a/b", "/a", ""]
+  // "/a/b/c" => ["", "/a", "/a/b/", "/a/b/c"]
   const segments = [""];
-  let current = "";
+  let edgeSegment = "";
   for (const segment of path.split("/")) {
     // Ignore redundant slashes.
     if (segment !== "") {
-      current += `/${segment}`;
-      segments.push(current);
+      edgeSegment += `/${segment}`;
+      segments.push(edgeSegment);
     }
   }
-  segments.reverse();
 
-  // [...guard]s are evaluated from top to bottom
-  for (let i = segments.length - 1; i >= 0; i--) {
+  // [...guard]s are pushed from root to edge.
+  for (let i = 0; i < segments.length; i++) {
     routes.push(`${segments[i]}/[...guard]`);
   }
 
@@ -247,18 +246,19 @@ function generateRoutes(path: string): string[] {
   routes.push(path);
 
   // "/a/b/c" => ["/a/b/[c]", "/a/b/c/[index]"]
-  const edgeSegment = segments[0];
   const lastSlash = edgeSegment.lastIndexOf("/") + 1;
   if (lastSlash > 0) {
     routes.push(`${edgeSegment.substring(0, lastSlash)}[${edgeSegment.substring(lastSlash)}]`);
   }
   routes.push(`${edgeSegment}/[index]`);
 
-  for (let i = 0; i < segments.length; i++) {
+  // [...path]s are pushed from edge to root.
+  for (let i = segments.length - 1; i >= 0; i--) {
     routes.push(`${segments[i]}/[...path]`);
   }
 
-  for (let i = 0; i < segments.length; i++) {
+  // [404]s are pushed from edge to root.
+  for (let i = segments.length - 1; i >= 0; i--) {
     routes.push(`${segments[i]}/[404]`);
   }
 

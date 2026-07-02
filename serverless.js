@@ -128,28 +128,26 @@ async function handler(request, reply) {
 function generateRoutes(path) {
   const routes = [];
   const segments = [""];
-  let current = "";
+  let edgeSegment = "";
   for (const segment of path.split("/")) {
     if (segment !== "") {
-      current += `/${segment}`;
-      segments.push(current);
+      edgeSegment += `/${segment}`;
+      segments.push(edgeSegment);
     }
   }
-  segments.reverse();
-  for (let i = segments.length - 1; i >= 0; i--) {
+  for (let i = 0; i < segments.length; i++) {
     routes.push(`${segments[i]}/[...guard]`);
   }
   routes.push(path);
-  const edgeSegment = segments[0];
   const lastSlash = edgeSegment.lastIndexOf("/") + 1;
   if (lastSlash > 0) {
     routes.push(`${edgeSegment.substring(0, lastSlash)}[${edgeSegment.substring(lastSlash)}]`);
   }
   routes.push(`${edgeSegment}/[index]`);
-  for (let i = 0; i < segments.length; i++) {
+  for (let i = segments.length - 1; i >= 0; i--) {
     routes.push(`${segments[i]}/[...path]`);
   }
-  for (let i = 0; i < segments.length; i++) {
+  for (let i = segments.length - 1; i >= 0; i--) {
     routes.push(`${segments[i]}/[404]`);
   }
   return routes;
