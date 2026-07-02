@@ -74,7 +74,7 @@ if (!NODE_ENV_IS_DEVELOPMENT) {
 
     // Handle server routes.
     if (/^dist\/.*\[.+\]\.js$/.test(path)) {
-      routes[path.slice("dist".length, ".js".length)] = path;
+      routes[path.slice("dist".length, -".js".length)] = path;
       continue;
     }
 
