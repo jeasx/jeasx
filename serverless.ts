@@ -185,14 +185,11 @@ async function handler(request: FastifyRequest, reply: FastifyReply) {
         isJSX(response)
       ) {
         break;
-      } else if (
-        route.endsWith("/[...guard]") &&
-        (response === undefined || typeof response === "object")
-      ) {
+      } else if (route.endsWith("/[...guard]") && typeof response === "object") {
         // Add object entries from guard to props
         Object.assign(props, response);
         continue;
-      } else if (reply.statusCode === 404) {
+      } else if (response === undefined || reply.statusCode === 404) {
         continue;
       } else {
         break;
@@ -219,9 +216,9 @@ async function handler(request: FastifyRequest, reply: FastifyReply) {
  *
  * [
  *  "/[...guard]","/a/[...guard]","/a/b/[...guard]","/a/b/c/[...guard]",
+ *  "/a/b/c",
  *  "/a/b/[c]","/a/b/c/[index]",
  *  "/a/b/c/[...path]","/a/b/[...path]","/a/[...path]","/[...path]",
- *  "/a/b/c",
  *  "/a/b/c/[404]","/a/b/[404]","/a/[404]","/[404]"
  * ]
  */
@@ -246,6 +243,9 @@ function generateRoutes(path: string): string[] {
     routes.push(`${segments[i]}/[...guard]`);
   }
 
+  // Append the verbatim path for static file serving.
+  routes.push(path);
+
   // "/a/b/c" => ["/a/b/[c]", "/a/b/c/[index]"]
   const edgeSegment = segments[0];
   const lastSlash = edgeSegment.lastIndexOf("/") + 1;
@@ -257,9 +257,6 @@ function generateRoutes(path: string): string[] {
   for (let i = 0; i < segments.length; i++) {
     routes.push(`${segments[i]}/[...path]`);
   }
-
-  // Append the verbatim path for static file serving.
-  routes.push(path);
 
   for (let i = 0; i < segments.length; i++) {
     routes.push(`${segments[i]}/[404]`);

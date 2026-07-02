@@ -104,10 +104,10 @@ async function handler(request, reply) {
         break;
       } else if (typeof response === "string" || response instanceof Readable || Buffer.isBuffer(response) || isJSX(response)) {
         break;
-      } else if (route.endsWith("/[...guard]") && (response === void 0 || typeof response === "object")) {
+      } else if (route.endsWith("/[...guard]") && typeof response === "object") {
         Object.assign(props, response);
         continue;
-      } else if (reply.statusCode === 404) {
+      } else if (response === void 0 || reply.statusCode === 404) {
         continue;
       } else {
         break;
@@ -139,6 +139,7 @@ function generateRoutes(path) {
   for (let i = segments.length - 1; i >= 0; i--) {
     routes.push(`${segments[i]}/[...guard]`);
   }
+  routes.push(path);
   const edgeSegment = segments[0];
   const lastSlash = edgeSegment.lastIndexOf("/") + 1;
   if (lastSlash > 0) {
@@ -148,7 +149,6 @@ function generateRoutes(path) {
   for (let i = 0; i < segments.length; i++) {
     routes.push(`${segments[i]}/[...path]`);
   }
-  routes.push(path);
   for (let i = 0; i < segments.length; i++) {
     routes.push(`${segments[i]}/[404]`);
   }
