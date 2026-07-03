@@ -1,5 +1,41 @@
 # Changelog
 
+## 2026-07-03 - Jeasx 2.8.0 released
+
+### 🚀 Unified Asset & Route Handling
+
+This release completes the architectural transition of merging dynamic server routes and static browser assets into a common directory tree. While Jeasx 2.6 removed the strict directory separation, this version further unifies how these files are processed.
+
+Previously, browser assets were served directly by `@fastify/static`, while server routes were handled by the route handler. This created a limitation where server-side logic (like authentication or custom headers) couldn't be applied to static assets.
+
+With this release, all files - regardless of type - are now handled directly by the route handler. This introduces several major improvements:
+
+- **Enhanced Control:** You can now use guards to modify responses for static assets, such as adding security headers or implementing password protection.
+
+- **Hot-Reloading for Assets:** Static files in development mode are now picked up instantly. No application restarts are required to make new files accessible.
+
+- **Production Optimization & Security:** In production, static files are mapped into a metadata export at build time. This improves server startup performance by eliminating file globbing and provides robust protection against path traversal attacks.
+
+#### ⚠️ Important Migration Note
+
+To achieve these improvements, `@fastify/static` has been removed as a direct dependency in favor of `@fastify/send`. Since `@fastify/static` relied on `@fastify/send` internally, this change provides more flexibility while maintaining the same functionality with fewer dependencies.
+
+A minor configuration change is required to make your application work as expected. You'll need to change references in `jeasx.config.js` from `@fastify/static` to `@fastify/send` .
+
+```js
+  // BEFORE //
+    /** @type {() => import("@fastify/static").FastifyStaticOptions} */
+    FASTIFY_STATIC_OPTIONS: () => ({/* configuraton options */}),
+
+  // AFTER //
+  /** @type {() => import("@fastify/send").SendOptions} */
+  FASTIFY_SEND_OPTIONS: () => ({/* configuraton options */}),
+```
+
+Because the configuration options for `@fastify/static` and `@fastify/send` are almost identical, no configuration changes are required for most users.
+
+Dependency updates: `@fastify/send@4.1.0`, `@types/node@26.1.0`
+
 ## 2026-06-28 - Jeasx 2.7.5 released
 
 🎉 This release focuses on internal improvements and codebase organization. I have renamed `esbuild.config.js` to `build.js` and `server.js` to `start.js` to more accurately reflect their roles within `cli.js`. The renamed scripts are intended for internal use and should not be called directly. If your current workflow requires calling them, please update your project configuration accordingly.
