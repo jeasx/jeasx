@@ -28,7 +28,7 @@ var serverless_default = FASTIFY_SERVER(
     ...CONFIG.FASTIFY_FORMBODY_OPTIONS?.()
   }).register(fastifyMultipart, {
     ...CONFIG.FASTIFY_MULTIPART_OPTIONS?.()
-  }).decorateRequest("route", "").decorateRequest("path", "").addHook("onRequest", async (request) => {
+  }).decorateRequest("route", "").decorateRequest("path", "").decorateReply("file", void 0).addHook("onRequest", async (request) => {
     const index = request.url.indexOf("?");
     request.path = index === -1 ? request.url : request.url.slice(0, index);
   }).all("*", async (request, reply) => {
@@ -49,13 +49,13 @@ async function handler(request, reply) {
   const context = {};
   const props = { request, reply };
   try {
+    reply.file = await tryFile(request);
     for (const route of generateRoutes(request.path)) {
       if (route === request.path) {
-        const sendResult = await tryFile(request);
-        if (sendResult) {
-          reply.status(sendResult.statusCode);
-          reply.headers(sendResult.headers);
-          response = sendResult.stream;
+        if (reply.file) {
+          reply.status(reply.file.statusCode);
+          reply.headers(reply.file.headers);
+          response = reply.file.stream;
           break;
         }
         continue;
@@ -76,7 +76,7 @@ async function handler(request, reply) {
           module = await import(`file://${modulePath}?${mtime}`);
         }
       } catch (e) {
-        switch (e.code) {
+        switch (e?.code) {
           case "ENOENT":
           case "ENOTDIR":
           case "ERR_MODULE_NOT_FOUND":
