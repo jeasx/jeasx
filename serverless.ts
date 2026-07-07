@@ -32,12 +32,15 @@ const { routes: MODULE_BY_ROUTE, files: FILE_BY_PATH } = NODE_ENV_IS_DEVELOPMENT
 
 declare module "fastify" {
   interface FastifyRequest {
-    path: string; // Path without query parameters
-    route: string; // Path to resolved route handler
+    /** Path without query parameters */
+    path: string;
+    /** Path to resolved route handler */
+    route: string;
   }
 
   interface FastifyReply {
-    file: BaseSendResult | undefined; // Stream for static files
+    /** Populated when serving a static file; otherwise undefined. */
+    file?: BaseSendResult;
   }
 }
 
