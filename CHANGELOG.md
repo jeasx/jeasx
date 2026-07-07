@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-07-07 - Jeasx 2.8.1 released
+
+🎉 You can now access static file metadata in guards directly via `reply.file`. If a file exists for the requested path, this object will be pre-populated with `headers`, `statusCode`, and `stream` for the current file. This eliminates the need for manual checks when performing logic on static files, including:
+
+- Skipping basic authentication.
+- Dynamically modifying headers.
+- Replacing content on the fly.
+
+Check out the new [basic auth example](https://expo.jeasx.dev/basic-auth) for implementation details.
+
+Also refined type definitions in `serverless.ts` to improve code readability and maintainability.
+
+Dependency updates: `fastify@5.10.0`
+
 ## 2026-07-03 - Jeasx 2.8.0 released
 
 ### 🚀 Unified Asset & Route Handling
@@ -119,9 +133,7 @@ If you’re using Docker, make sure to create an entry for `jeasx.config.js` in 
 ```js
 process.env.API_ENDPOINT = "https://expo.jeasx.dev/jokes/api/";
 
-export default {
-  /* ... */
-};
+export default {/* ... */};
 ```
 
 Dependency updates: `@types/node@25.9.1`
