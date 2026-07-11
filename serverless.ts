@@ -23,12 +23,15 @@ const NODE_ENV_IS_DEVELOPMENT = process.env.NODE_ENV === "development";
 // Map routes and files for non-development environments from metadata export.
 // Module paths are initialized at startup but overwritten
 // with resolved modules upon the first request.
-const { routes: MODULE_BY_ROUTE, files: FILE_BY_PATH } = NODE_ENV_IS_DEVELOPMENT
+const {
+  routes: MODULE_BY_ROUTE,
+  files: FILE_BY_PATH,
+}: {
+  routes: Record<string, string | { default: Function }>;
+  files: Record<string, string>;
+} = NODE_ENV_IS_DEVELOPMENT
   ? { routes: {}, files: {} }
-  : ((await import(`file://${join(CWD, "dist", "[--metadata--].js")}`)).default as {
-      routes: Record<string, string | { default: Function }>;
-      files: Record<string, string>;
-    });
+  : (await import(`file://${join(CWD, "dist", "[--metadata--].js")}`)).default;
 
 declare module "fastify" {
   interface FastifyRequest {
