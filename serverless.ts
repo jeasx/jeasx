@@ -47,9 +47,7 @@ declare module "fastify" {
   }
 }
 
-const FASTIFY_SEND_OPTIONS = {
-  ...(CONFIG.FASTIFY_SEND_OPTIONS?.() as SendOptions),
-};
+const FASTIFY_SEND_OPTIONS = CONFIG.FASTIFY_SEND_OPTIONS?.() as SendOptions;
 
 // Enhance Fastify server from userland
 const FASTIFY_SERVER = (CONFIG.FASTIFY_SERVER ?? ((fastify) => fastify)) as (
@@ -57,23 +55,13 @@ const FASTIFY_SERVER = (CONFIG.FASTIFY_SERVER ?? ((fastify) => fastify)) as (
 ) => FastifyInstance;
 
 // Create and export a Fastify instance
-export default FASTIFY_SERVER(
-  fastify({
-    ...(CONFIG.FASTIFY_SERVER_OPTIONS?.() as FastifyServerOptions),
-  }),
-)
+export default FASTIFY_SERVER(fastify(CONFIG.FASTIFY_SERVER_OPTIONS?.() as FastifyServerOptions))
   // Create encapsulation context
   .register((fastify) => {
     fastify
-      .register(fastifyCookie, {
-        ...(CONFIG.FASTIFY_COOKIE_OPTIONS?.() as FastifyCookieOptions),
-      })
-      .register(fastifyFormbody, {
-        ...(CONFIG.FASTIFY_FORMBODY_OPTIONS?.() as FastifyFormbodyOptions),
-      })
-      .register(fastifyMultipart, {
-        ...(CONFIG.FASTIFY_MULTIPART_OPTIONS?.() as FastifyMultipartOptions),
-      })
+      .register(fastifyCookie, CONFIG.FASTIFY_COOKIE_OPTIONS?.() as FastifyCookieOptions)
+      .register(fastifyFormbody, CONFIG.FASTIFY_FORMBODY_OPTIONS?.() as FastifyFormbodyOptions)
+      .register(fastifyMultipart, CONFIG.FASTIFY_MULTIPART_OPTIONS?.() as FastifyMultipartOptions)
       .decorateRequest("route", "")
       .decorateRequest("path", "")
       .decorateReply("file", undefined)
