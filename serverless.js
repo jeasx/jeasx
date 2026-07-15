@@ -18,8 +18,8 @@ const {
 } = NODE_ENV_IS_DEVELOPMENT ? { routes: {}, files: {} } : (await import(`file://${join(CWD, "dist", "[--metadata--].js")}`)).default;
 const FASTIFY_SEND_OPTIONS = CONFIG.FASTIFY_SEND_OPTIONS?.();
 const FASTIFY_SERVER = CONFIG.FASTIFY_SERVER ?? ((fastify2) => fastify2);
-var serverless_default = FASTIFY_SERVER(fastify(CONFIG.FASTIFY_SERVER_OPTIONS?.())).register((fastify2) => {
-  fastify2.register(fastifyCookie, CONFIG.FASTIFY_COOKIE_OPTIONS?.()).register(fastifyFormbody, CONFIG.FASTIFY_FORMBODY_OPTIONS?.()).register(fastifyMultipart, CONFIG.FASTIFY_MULTIPART_OPTIONS?.()).decorateRequest("route", "").decorateRequest("path", "").decorateReply("file", void 0).addHook("onRequest", async (request) => {
+var serverless_default = FASTIFY_SERVER(
+  fastify(CONFIG.FASTIFY_SERVER_OPTIONS?.()).register(fastifyCookie, CONFIG.FASTIFY_COOKIE_OPTIONS?.()).register(fastifyFormbody, CONFIG.FASTIFY_FORMBODY_OPTIONS?.()).register(fastifyMultipart, CONFIG.FASTIFY_MULTIPART_OPTIONS?.()).decorateRequest("route", "").decorateRequest("path", "").decorateReply("file", void 0).addHook("onRequest", async (request) => {
     const index = request.url.indexOf("?");
     request.path = index === -1 ? request.url : request.url.slice(0, index);
   }).all("*", async (request, reply) => {
@@ -33,8 +33,8 @@ var serverless_default = FASTIFY_SERVER(fastify(CONFIG.FASTIFY_SERVER_OPTIONS?.(
       request.log.error(error);
       throw error;
     }
-  });
-});
+  })
+);
 async function handler(request, reply) {
   let response;
   const context = {};

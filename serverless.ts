@@ -55,37 +55,35 @@ const FASTIFY_SERVER = (CONFIG.FASTIFY_SERVER ?? ((fastify) => fastify)) as (
 ) => FastifyInstance;
 
 // Create and export a Fastify instance
-export default FASTIFY_SERVER(fastify(CONFIG.FASTIFY_SERVER_OPTIONS?.() as FastifyServerOptions))
-  // Create encapsulation context
-  .register((fastify) => {
-    fastify
-      .register(fastifyCookie, CONFIG.FASTIFY_COOKIE_OPTIONS?.() as FastifyCookieOptions)
-      .register(fastifyFormbody, CONFIG.FASTIFY_FORMBODY_OPTIONS?.() as FastifyFormbodyOptions)
-      .register(fastifyMultipart, CONFIG.FASTIFY_MULTIPART_OPTIONS?.() as FastifyMultipartOptions)
-      .decorateRequest("route", "")
-      .decorateRequest("path", "")
-      .decorateReply("file", undefined)
-      .addHook("onRequest", async (request) => {
-        // Extract path from url
-        const index = request.url.indexOf("?");
-        request.path = index === -1 ? request.url : request.url.slice(0, index);
-      })
-      .all("*", async (request: FastifyRequest, reply: FastifyReply) => {
-        try {
-          const payload = await handler(request, reply);
-          if (
-            reply.getHeader("content-type") === undefined &&
-            (typeof payload === "string" || Buffer.isBuffer(payload))
-          ) {
-            reply.type("text/html; charset=utf-8");
-          }
-          return payload;
-        } catch (error) {
-          request.log.error(error);
-          throw error;
+export default FASTIFY_SERVER(
+  fastify(CONFIG.FASTIFY_SERVER_OPTIONS?.() as FastifyServerOptions)
+    .register(fastifyCookie, CONFIG.FASTIFY_COOKIE_OPTIONS?.() as FastifyCookieOptions)
+    .register(fastifyFormbody, CONFIG.FASTIFY_FORMBODY_OPTIONS?.() as FastifyFormbodyOptions)
+    .register(fastifyMultipart, CONFIG.FASTIFY_MULTIPART_OPTIONS?.() as FastifyMultipartOptions)
+    .decorateRequest("route", "")
+    .decorateRequest("path", "")
+    .decorateReply("file", undefined)
+    .addHook("onRequest", async (request) => {
+      // Extract path from url
+      const index = request.url.indexOf("?");
+      request.path = index === -1 ? request.url : request.url.slice(0, index);
+    })
+    .all("*", async (request: FastifyRequest, reply: FastifyReply) => {
+      try {
+        const payload = await handler(request, reply);
+        if (
+          reply.getHeader("content-type") === undefined &&
+          (typeof payload === "string" || Buffer.isBuffer(payload))
+        ) {
+          reply.type("text/html; charset=utf-8");
         }
-      });
-  });
+        return payload;
+      } catch (error) {
+        request.log.error(error);
+        throw error;
+      }
+    }),
+);
 
 /**
  * Resolves route module based on the request path and execute it.
