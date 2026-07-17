@@ -1,5 +1,45 @@
 # Changelog
 
+## 2026-07-17 - Jeasx 2.9.0 released
+
+### ✨ Less is more... trimming the fat
+
+This release **removes** `@fastify/formbody`, `@fastify/cookie`, and `@fastify/multipart` as core dependencies. Since Jeasx is capable of powering serious, real-world projects without these dependencies, removing them keeps your project's footprint as small as possible. This allows you to enable them individually, only when your specific use case requires them.
+
+- **Forms:** Install `@fastify/formbody` if your project requires _POST_ form support.
+- **Cookies:** Install `@fastify/cookie` if you need to handle HTTP cookies.
+- **Uploads:** Install `@fastify/multipart` if your project handles file uploads.
+
+Jeasx is built on the philosophy of providing a powerful core while pushing customizations to the user level. By avoiding opinionated defaults, Jeasx gives you the freedom to build a setup that is uniquely your own.
+
+Need these features? No problem! Jeasx makes it easy to customize your stack. To get back to the exact setup from previous releases, just add these dependencies directly to your project:
+
+```bash
+npm install @fastify/formbody @fastify/cookie @fastify/multipart
+```
+
+Next, update your `jeasx.config.js` with the following configuration to customize your Fastify server instance:
+
+```js
+/** @type {(fastify: import("fastify").FastifyInstance) => import("fastify").FastifyInstance} */
+FASTIFY_SERVER: (fastify) =>
+  fastify
+    .register(import("@fastify/formbody"), {/* insert options from FASTIFY_FORMBODY_OPTIONS */})
+    .register(import("@fastify/multipart"), {/* insert options from FASTIFY_MULTIPART_OPTIONS */})
+    .register(import("@fastify/cookie"), {/* insert options from FASTIFY_COOKIE_OPTIONS */});
+```
+
+Because plugins like `@fastify/cookie` and `@fastify/multipart` extend the `request` and `reply` objects, you should add the following imports to `src/types.d.ts` (or a similar definition file in your project) to ensure proper TypeScript support for your editor:
+
+```js
+import "@fastify/cookie";
+import "@fastify/multipart";
+```
+
+This release also removes the additional encapsulation context from the Fastify initialization. This change allows for a more direct and flexible customization of the underlying Fastify instance.
+
+Dependency updates: `jsx-async-runtime@2.2.0`, `@types/node@26.1.1`
+
 ## 2026-07-07 - Jeasx 2.8.1 released
 
 🎉 You can now access static file metadata in guards directly via `reply.file`. If a file exists for the requested path, this object will be pre-populated with `headers`, `statusCode`, and `stream` for the current file. This eliminates the need for manual checks when performing logic on static files, including:

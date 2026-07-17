@@ -29,9 +29,6 @@
     "build": "esbuild --platform=node --format=esm --sourcemap=linked --outdir=. serverless.ts"
   },
   "dependencies": {
-    "@fastify/cookie": "11.1.2",
-    "@fastify/formbody": "8.0.2",
-    "@fastify/multipart": "10.1.0",
     "@fastify/send": "4.1.0",
     "@types/node": "26.1.1",
     "esbuild": "0.28.1",

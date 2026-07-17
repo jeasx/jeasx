@@ -1,6 +1,3 @@
-import fastifyCookie from "@fastify/cookie";
-import fastifyFormbody from "@fastify/formbody";
-import fastifyMultipart from "@fastify/multipart";
 import fastifySend from "@fastify/send";
 import fastify from "fastify";
 import { jsxToString } from "jsx-async-runtime";
@@ -19,7 +16,7 @@ const {
 const FASTIFY_SEND_OPTIONS = CONFIG.FASTIFY_SEND_OPTIONS?.();
 const FASTIFY_SERVER = CONFIG.FASTIFY_SERVER ?? ((fastify2) => fastify2);
 var serverless_default = FASTIFY_SERVER(
-  fastify(CONFIG.FASTIFY_SERVER_OPTIONS?.()).register(fastifyCookie, CONFIG.FASTIFY_COOKIE_OPTIONS?.()).register(fastifyFormbody, CONFIG.FASTIFY_FORMBODY_OPTIONS?.()).register(fastifyMultipart, CONFIG.FASTIFY_MULTIPART_OPTIONS?.()).decorateRequest("route", "").decorateRequest("path", "").decorateReply("file", void 0).addHook("onRequest", async (request) => {
+  fastify(CONFIG.FASTIFY_SERVER_OPTIONS?.()).decorateRequest("route", "").decorateRequest("path", "").decorateReply("file", void 0).addHook("onRequest", async (request) => {
     const index = request.url.indexOf("?");
     request.path = index === -1 ? request.url : request.url.slice(0, index);
   }).all("*", async (request, reply) => {

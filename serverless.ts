@@ -1,6 +1,3 @@
-import fastifyCookie, { FastifyCookieOptions } from "@fastify/cookie";
-import fastifyFormbody, { FastifyFormbodyOptions } from "@fastify/formbody";
-import fastifyMultipart, { FastifyMultipartOptions } from "@fastify/multipart";
 import fastifySend, { BaseSendResult, SendOptions } from "@fastify/send";
 import fastify, {
   FastifyInstance,
@@ -57,9 +54,6 @@ const FASTIFY_SERVER = (CONFIG.FASTIFY_SERVER ?? ((fastify) => fastify)) as (
 // Create and export a Fastify instance
 export default FASTIFY_SERVER(
   fastify(CONFIG.FASTIFY_SERVER_OPTIONS?.() as FastifyServerOptions)
-    .register(fastifyCookie, CONFIG.FASTIFY_COOKIE_OPTIONS?.() as FastifyCookieOptions)
-    .register(fastifyFormbody, CONFIG.FASTIFY_FORMBODY_OPTIONS?.() as FastifyFormbodyOptions)
-    .register(fastifyMultipart, CONFIG.FASTIFY_MULTIPART_OPTIONS?.() as FastifyMultipartOptions)
     .decorateRequest("route", "")
     .decorateRequest("path", "")
     .decorateReply("file", undefined)
