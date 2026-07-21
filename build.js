@@ -28,7 +28,6 @@ const SERVER_OPTIONS = {
   logLevel: "info",
   color: true,
   bundle: true,
-  metafile: true,
   outdir: "dist",
   publicPath: "/",
   assetNames: "[dir]/[name]-[hash]",
