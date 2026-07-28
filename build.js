@@ -5,10 +5,11 @@ import env from "./env.js";
 
 env();
 
+process.env.BUILD_TIME ??= Date.now().toString(36);
+
 const CWD = process.cwd();
 const CONFIG = (await import(`file://${join(CWD, "jeasx.config.js")}`)).default;
 const NODE_ENV_IS_DEVELOPMENT = process.env.NODE_ENV === "development";
-const BUILD_TIME = `"${process.env.BUILD_TIME || Date.now().toString(36)}"`;
 
 const BROWSER_PUBLIC_ENV = Object.keys(process.env)
   .filter((key) => key.startsWith("BROWSER_PUBLIC_"))
@@ -17,13 +18,13 @@ const BROWSER_PUBLIC_ENV = Object.keys(process.env)
       env[`process.env.${key}`] = `"${process.env[key]}"`;
       return env;
     },
-    Object({ "process.env.BROWSER_PUBLIC_BUILD_TIME": BUILD_TIME }),
+    Object({ "process.env.BROWSER_PUBLIC_BUILD_TIME": `"${process.env.BUILD_TIME}"` }),
   );
 
 /** @type esbuild.BuildOptions */
 const SERVER_OPTIONS = {
   entryPoints: ["src/**/[*].*"],
-  define: { "process.env.BUILD_TIME": BUILD_TIME },
+  define: { "process.env.BUILD_TIME": `"${process.env.BUILD_TIME}"` },
   minify: !NODE_ENV_IS_DEVELOPMENT,
   logLevel: "info",
   color: true,
