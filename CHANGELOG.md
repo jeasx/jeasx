@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-07-30 - Jeasx 2.9.1 released
+
+### 🎉 Routine maintenance release.
+
+`BUILD_TIME` is now injected into the environment during the build process, before `jeasx.config.js` is loaded. This enables you to capture the build timestamp for use during runtime (e.g. for using it in [FASTIFY_SERVER_OPTIONS#rewriteUrl](https://fastify.dev/docs/latest/Reference/Server/#rewriteurl)).
+
+Dependency updates: `fastify@5.11.0`, `@types/node@26.1.2`
+
 ## 2026-07-17 - Jeasx 2.9.0 released
 
 ### ✨ Less is more... trimming the fat
