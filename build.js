@@ -19,8 +19,8 @@ const SERVER_OPTIONS = {
   outdir: "dist",
   publicPath: "/",
   assetNames: "[dir]/[name]-[hash]",
-  platform: "neutral",
   format: "esm",
+  platform: "neutral",
   packages: "external",
   ...CONFIG.ESBUILD_SERVER_OPTIONS?.(),
 };
@@ -35,8 +35,9 @@ const BROWSER_OPTIONS = {
   outdir: "dist",
   publicPath: "/",
   assetNames: "[dir]/[name]-[hash]",
-  platform: "browser",
   format: "esm",
+  platform: "browser",
+  packages: "bundle",
   ...CONFIG.ESBUILD_BROWSER_OPTIONS?.(),
 };
 
