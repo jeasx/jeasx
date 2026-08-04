@@ -1,5 +1,24 @@
 # Changelog
 
+## 2026-08-04 - Jeasx 2.10.0 released
+
+### 🎉 `BUILD_TIME` moved to userland
+
+As part of my ongoing goal to move features from the core into userland, I’ve removed the core-level `BUILD_TIME` variable. While this simplifies the core, I want to ensure your builds aren't affected. If you use `BUILD_TIME` for cache busting, you can now let `esbuild` handle it directly using the powerful [define option](https://esbuild.github.io/api/#define) in your `jeasx.config.js`:
+
+```js
+/** @type {() => import("esbuild").BuildOptions} */
+ESBUILD_SERVER_OPTIONS: () => ({
+  define: { "process.env.BUILD_TIME": `"${Date.now().toString(36)}"` },
+});
+```
+
+This configuration replaces all references to `process.env.BUILD_TIME` with a Base36 (a-z0-9) encoded timestamp as string (note the additional quotes above).
+
+I have also removed the automatic provision of `BROWSER_PUBLIC_` environment variables to frontend bundles. This gives you the freedom to define your own schema; simply add the appropriate define option to `ESBUILD_BROWSER_OPTIONS` to specify which variables should be available to the frontend.
+
+Dependency updates: `fastify@5.11.2`
+
 ## 2026-07-30 - Jeasx 2.9.1 released
 
 ### 🎉 Routine maintenance release.
