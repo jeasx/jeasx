@@ -9,7 +9,7 @@ const CWD = process.cwd();
 const CONFIG = (await import(`file://${join(CWD, "jeasx.config.js")}`)).default;
 const NODE_ENV_IS_DEVELOPMENT = process.env.NODE_ENV === "development";
 
-/** @type esbuild.BuildOptions */
+/** @type {esbuild.BuildOptions} */
 const SERVER_OPTIONS = {
   entryPoints: ["src/**/[*].*"],
   minify: !NODE_ENV_IS_DEVELOPMENT,
@@ -25,7 +25,7 @@ const SERVER_OPTIONS = {
   ...CONFIG.ESBUILD_SERVER_OPTIONS?.(),
 };
 
-/** @type esbuild.BuildOptions */
+/** @type {esbuild.BuildOptions} */
 const BROWSER_OPTIONS = {
   entryPoints: ["src/**/index.*"],
   minify: !NODE_ENV_IS_DEVELOPMENT,
@@ -51,9 +51,9 @@ for (const options of [SERVER_OPTIONS, BROWSER_OPTIONS]) {
 
 // Export path mappings for routes and files
 if (!NODE_ENV_IS_DEVELOPMENT) {
-  /** @type Record<string,string> */
+  /** @type {Record<string,string>} */
   const routes = {};
-  /** @type Record<string,string> */
+  /** @type {Record<string,string>} */
   const files = {};
 
   for await (const entry of glob("{dist,public}/**/*")) {
