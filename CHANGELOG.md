@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-08-15 - Jeasx 2.10.1 released
+
+🎉 Just a bunch of dependency updates...
+
+Dependency updates: fastify@5.12.0, @fastify/send@4.1.1, esbuild@0.28.2, @types/node@26.2.0
+
 ## 2026-08-04 - Jeasx 2.10.0 released
 
 ### 🎉 `BUILD_TIME` moved to userland
