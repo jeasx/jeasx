@@ -24,5 +24,3 @@ switch (process.argv[2]) {
     console.info(`💡 Usage: jeasx [start|build|dev|clean]`);
     process.exit(1);
 }
-
-export {};
