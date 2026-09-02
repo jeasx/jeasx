@@ -215,9 +215,7 @@ async function handler(request: FastifyRequest, reply: FastifyReply) {
  *  "/a/b/c/[404]","/a/b/[404]","/a/[404]","/[404]"
  * ]
  */
-function generateRoutes(path: string): string[] {
-  const routes = [];
-
+function* generateRoutes(path: string): Generator<string> {
   // Transform given path into array of all its segments.
   // "/a/b/c" => ["", "/a", "/a/b/", "/a/b/c"]
   const segments = [""];
@@ -232,30 +230,28 @@ function generateRoutes(path: string): string[] {
 
   // [...guard]s are pushed from root to edge.
   for (let i = 0; i < segments.length; i++) {
-    routes.push(`${segments[i]}/[...guard]`);
+    yield `${segments[i]}/[...guard]`;
   }
 
   // Append the verbatim path for static file serving.
-  routes.push(path);
+  yield path;
 
   // "/a/b/c" => ["/a/b/[c]", "/a/b/c/[index]"]
   const lastSlash = edgeSegment.lastIndexOf("/") + 1;
   if (lastSlash > 0) {
-    routes.push(`${edgeSegment.substring(0, lastSlash)}[${edgeSegment.substring(lastSlash)}]`);
+    yield `${edgeSegment.substring(0, lastSlash)}[${edgeSegment.substring(lastSlash)}]`;
   }
-  routes.push(`${edgeSegment}/[index]`);
+  yield `${edgeSegment}/[index]`;
 
   // [...path]s are pushed from edge to root.
   for (let i = segments.length - 1; i >= 0; i--) {
-    routes.push(`${segments[i]}/[...path]`);
+    yield `${segments[i]}/[...path]`;
   }
 
   // [404]s are pushed from edge to root.
   for (let i = segments.length - 1; i >= 0; i--) {
-    routes.push(`${segments[i]}/[404]`);
+    yield `${segments[i]}/[404]`;
   }
-
-  return routes;
 }
 
 /**

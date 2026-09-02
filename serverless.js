@@ -113,8 +113,7 @@ async function handler(request, reply) {
     }
   }
 }
-function generateRoutes(path) {
-  const routes = [];
+function* generateRoutes(path) {
   const segments = [""];
   let edgeSegment = "";
   for (const segment of path.split("/")) {
@@ -124,21 +123,20 @@ function generateRoutes(path) {
     }
   }
   for (let i = 0; i < segments.length; i++) {
-    routes.push(`${segments[i]}/[...guard]`);
+    yield `${segments[i]}/[...guard]`;
   }
-  routes.push(path);
+  yield path;
   const lastSlash = edgeSegment.lastIndexOf("/") + 1;
   if (lastSlash > 0) {
-    routes.push(`${edgeSegment.substring(0, lastSlash)}[${edgeSegment.substring(lastSlash)}]`);
+    yield `${edgeSegment.substring(0, lastSlash)}[${edgeSegment.substring(lastSlash)}]`;
   }
-  routes.push(`${edgeSegment}/[index]`);
+  yield `${edgeSegment}/[index]`;
   for (let i = segments.length - 1; i >= 0; i--) {
-    routes.push(`${segments[i]}/[...path]`);
+    yield `${segments[i]}/[...path]`;
   }
   for (let i = segments.length - 1; i >= 0; i--) {
-    routes.push(`${segments[i]}/[404]`);
+    yield `${segments[i]}/[404]`;
   }
-  return routes;
 }
 function isJSX(obj) {
   return !!obj && typeof obj === "object" && "type" in obj && "props" in obj;
