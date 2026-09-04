@@ -1,5 +1,24 @@
 # Changelog
 
+## 2026-09-04 - Jeasx 2.10.3 released
+
+### 🚀 More efficient route handling
+
+The central method `generateRoutes` has been updated to use a JavaScript generator instead of building and checking an array of all routes. This change reduces unnecessary memory usage and computational overhead, as most routes are matched early in the sequence and no longer require being pushed to an array.
+
+### 🔒 Security updates
+
+This version addresses four security vulnerabilities in the `fastify` dependency:
+
+- [GHSA-9q9j-q6p8-xq58](https://github.com/fastify/fastify/security/advisories/GHSA-9q9j-q6p8-xq58)
+- [GHSA-hwr6-493r-vm6h](https://github.com/fastify/fastify/security/advisories/GHSA-hwr6-493r-vm6h)
+- [GHSA-p68q-wchp-6fh7](https://github.com/fastify/fastify/security/advisories/GHSA-p68q-wchp-6fh7)
+- [GHSA-667r-xxjv-c9mm](https://github.com/fastify/fastify/security/advisories/GHSA-667r-xxjv-c9mm)
+
+We strongly recommend updating to this version to ensure the security of your application.
+
+Dependency updates: `fastify@5.12.3`, `@types/node@26.4.1`
+
 ## 2026-08-22 - Jeasx 2.10.2 released
 
 🎉 Security fixes for Fastify ([GHSA-w2qp-rph6-63g4](https://github.com/fastify/fastify/security/advisories/GHSA-w2qp-rph6-63g4) and [GHSA-3m5p-2c4r-xxw2](https://github.com/fastify/fastify/security/advisories/GHSA-3m5p-2c4r-xxw2))
