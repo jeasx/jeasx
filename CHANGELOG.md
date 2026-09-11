@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-09-11 - Jeasx 2.10.4 released
+
+🎉 Just some dependency updates...
+
+Dependency updates: `fastify@5.12.4`, `jsx-async-runtime@2.2.1`, `@types/node@26.5.1`
+
 ## 2026-09-04 - Jeasx 2.10.3 released
 
 ### 🚀 More efficient route handling
