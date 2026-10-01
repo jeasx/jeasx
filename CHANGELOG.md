@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-10-01 - Jeasx 2.10.5 released
+
+🎉 Security update for Fastify: [https://github.com/fastify/fastify/security/advisories/GHSA-4mh8-r7rc-xpvc](GHSA-4mh8-r7rc-xpvc).
+
+Dependency updates: `fastify@5.12.5`, `@types/node@26.6.3`
+
 ## 2026-09-11 - Jeasx 2.10.4 released
 
 🎉 Just some dependency updates...
