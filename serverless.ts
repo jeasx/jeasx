@@ -1,9 +1,9 @@
 import fastifySend, { BaseSendResult, SendOptions } from "@fastify/send";
 import fastify, {
-  FastifyInstance,
-  FastifyReply,
-  FastifyRequest,
-  FastifyServerOptions,
+    FastifyInstance,
+    FastifyReply,
+    FastifyRequest,
+    FastifyServerOptions,
 } from "fastify";
 import { jsxToString } from "jsx-async-runtime";
 import { stat } from "node:fs/promises";
@@ -178,7 +178,7 @@ async function handler(request: FastifyRequest, reply: FastifyReply) {
         isJSX(response)
       ) {
         break;
-      } else if (route.endsWith("/[...guard]") && typeof response === "object") {
+      } else if (typeof response === "object" && route.endsWith("/[...guard]")) {
         // Add object entries from guard to props
         Object.assign(props, response);
         continue;

@@ -92,7 +92,7 @@ async function handler(request, reply) {
         break;
       } else if (typeof response === "string" || response instanceof Readable || Buffer.isBuffer(response) || isJSX(response)) {
         break;
-      } else if (route.endsWith("/[...guard]") && typeof response === "object") {
+      } else if (typeof response === "object" && route.endsWith("/[...guard]")) {
         Object.assign(props, response);
         continue;
       } else if (response === void 0 || reply.statusCode === 404) {
