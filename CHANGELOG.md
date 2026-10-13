@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-10-13 - Jeasx 2.10.6 released
+
+🎉 Security update for Fastify ([GHSA-389g-gv7q-r4x8](https://github.com/fastify/fastify/security/advisories/GHSA-389g-gv7q-r4x8)).
+
+This release adds a minor performance improvement by switching checks for guards which return additional props.
+
+Dependency updates: `fastify@5.12.7`, `@fastify/send@4.1.2`, `@types/node@26.6.5`
+
 ## 2026-10-01 - Jeasx 2.10.5 released
 
 🎉 Security update for Fastify ([GHSA-4mh8-r7rc-xpvc](https://github.com/fastify/fastify/security/advisories/GHSA-4mh8-r7rc-xpvc)).
