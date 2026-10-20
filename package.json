@@ -29,7 +29,7 @@
     "build": "esbuild --platform=node --format=esm --sourcemap=linked --outdir=. serverless.ts"
   },
   "dependencies": {
-    "@fastify/send": "4.1.2",
+    "@fastify/send": "4.2.0",
     "@types/node": "26.6.5",
     "esbuild": "0.28.2",
     "fastify": "5.12.7",
