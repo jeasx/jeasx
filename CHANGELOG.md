@@ -1,5 +1,35 @@
 # Changelog
 
+## 2026-10-23 - Jeasx 2.10.7 released
+
+### Core changes
+
+- New: Routes and guards can return a web `Response` or `ReadableStream`,
+  which is served directly.
+
+- Fixed: File handles leaked when a guard or route responded before a
+  static file was served. The file stream is now always closed.
+
+- Security: Requesting a guard file by its literal path
+  (e.g. `/admin/[...guard]`) was treated as a static file request and
+  bypassed the guard. Guards now run for these requests as well.
+
+### Updates to `jsx-async-runtime`
+
+- Attribute rendering is about 1.5x faster, because it no longer builds
+  intermediate arrays.
+
+- Empty style objects and `null`, `undefined` or `false` style values
+  are no longer rendered.
+
+- `0` is now rendered when it is the only child (e.g. `<h1>{0}</h1>`).
+
+- `bigint` children are now rendered.
+
+- Arrays returned by components are now rendered.
+
+Dependency updates: `jsx-async-runtime@2.3.0`, `@fastify/send@4.2.0`
+
 ## 2026-10-13 - Jeasx 2.10.6 released
 
 🎉 Security update for Fastify ([GHSA-389g-gv7q-r4x8](https://github.com/fastify/fastify/security/advisories/GHSA-389g-gv7q-r4x8)).
