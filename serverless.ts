@@ -1,9 +1,9 @@
 import fastifySend, { BaseSendResult, SendOptions } from "@fastify/send";
 import fastify, {
-    FastifyInstance,
-    FastifyReply,
-    FastifyRequest,
-    FastifyServerOptions,
+  FastifyInstance,
+  FastifyReply,
+  FastifyRequest,
+  FastifyServerOptions,
 } from "fastify";
 import { jsxToString } from "jsx-async-runtime";
 import { stat } from "node:fs/promises";
@@ -63,8 +63,9 @@ export default FASTIFY_SERVER(
       request.path = index === -1 ? request.url : request.url.slice(0, index);
     })
     .all("*", async (request: FastifyRequest, reply: FastifyReply) => {
+      let payload: unknown;
       try {
-        const payload = await handler(request, reply);
+        payload = await handler(request, reply);
         if (
           reply.getHeader("content-type") === undefined &&
           (typeof payload === "string" || Buffer.isBuffer(payload))
@@ -75,9 +76,18 @@ export default FASTIFY_SERVER(
       } catch (error) {
         request.log.error(error);
         throw error;
+      } finally {
+        // Close file stream if it isn't sent and nobody started reading it,
+        // otherwise its file handle leaks.
+        const stream = reply.file?.stream;
+        if (stream && stream !== payload && stream.readableFlowing === null) {
+          stream.destroy();
+        }
       }
     }),
 );
+
+const STATIC_FILE = Symbol("static-file");
 
 /**
  * Resolves route module based on the request path and execute it.
@@ -97,8 +107,8 @@ async function handler(request: FastifyRequest, reply: FastifyReply) {
 
     // Execute route handlers for current request
     for (const route of generateRoutes(request.path)) {
-      // Try to serve static file when route matches path.
-      if (route === request.path) {
+      // Try to serve static file
+      if (route === STATIC_FILE) {
         if (reply.file) {
           reply.status(reply.file.statusCode);
           reply.headers(reply.file.headers);
@@ -188,7 +198,6 @@ async function handler(request: FastifyRequest, reply: FastifyReply) {
         break;
       }
     }
-
     return await renderResponse(context, response);
   } catch (error) {
     const errorHandler = context["errorHandler"];
@@ -209,13 +218,13 @@ async function handler(request: FastifyRequest, reply: FastifyReply) {
  *
  * [
  *  "/[...guard]","/a/[...guard]","/a/b/[...guard]","/a/b/c/[...guard]",
- *  "/a/b/c",
+ *  STATIC_FILE,
  *  "/a/b/[c]","/a/b/c/[index]",
  *  "/a/b/c/[...path]","/a/b/[...path]","/a/[...path]","/[...path]",
  *  "/a/b/c/[404]","/a/b/[404]","/a/[404]","/[404]"
  * ]
  */
-function* generateRoutes(path: string): Generator<string> {
+function* generateRoutes(path: string): Generator<string | typeof STATIC_FILE> {
   // Transform given path into array of all its segments.
   // "/a/b/c" => ["", "/a", "/a/b/", "/a/b/c"]
   const segments = [""];
@@ -233,8 +242,8 @@ function* generateRoutes(path: string): Generator<string> {
     yield `${segments[i]}/[...guard]`;
   }
 
-  // Append the verbatim path for static file serving.
-  yield path;
+  // Append the marker for static files
+  yield STATIC_FILE;
 
   // "/a/b/c" => ["/a/b/[c]", "/a/b/c/[index]"]
   const lastSlash = edgeSegment.lastIndexOf("/") + 1;

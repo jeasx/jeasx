@@ -20,8 +20,9 @@ var serverless_default = FASTIFY_SERVER(
     const index = request.url.indexOf("?");
     request.path = index === -1 ? request.url : request.url.slice(0, index);
   }).all("*", async (request, reply) => {
+    let payload;
     try {
-      const payload = await handler(request, reply);
+      payload = await handler(request, reply);
       if (reply.getHeader("content-type") === void 0 && (typeof payload === "string" || Buffer.isBuffer(payload))) {
         reply.type("text/html; charset=utf-8");
       }
@@ -29,9 +30,15 @@ var serverless_default = FASTIFY_SERVER(
     } catch (error) {
       request.log.error(error);
       throw error;
+    } finally {
+      const stream = reply.file?.stream;
+      if (stream && stream !== payload && stream.readableFlowing === null) {
+        stream.destroy();
+      }
     }
   })
 );
+const STATIC_FILE = /* @__PURE__ */ Symbol("static-file");
 async function handler(request, reply) {
   let response;
   const context = {};
@@ -39,7 +46,7 @@ async function handler(request, reply) {
   try {
     reply.file = await tryFile(request);
     for (const route of generateRoutes(request.path)) {
-      if (route === request.path) {
+      if (route === STATIC_FILE) {
         if (reply.file) {
           reply.status(reply.file.statusCode);
           reply.headers(reply.file.headers);
@@ -125,7 +132,7 @@ function* generateRoutes(path) {
   for (let i = 0; i < segments.length; i++) {
     yield `${segments[i]}/[...guard]`;
   }
-  yield path;
+  yield STATIC_FILE;
   const lastSlash = edgeSegment.lastIndexOf("/") + 1;
   if (lastSlash > 0) {
     yield `${edgeSegment.substring(0, lastSlash)}[${edgeSegment.substring(lastSlash)}]`;
