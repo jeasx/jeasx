@@ -97,7 +97,7 @@ async function handler(request, reply) {
           reply.status(404);
         }
         break;
-      } else if (typeof response === "string" || response instanceof Readable || Buffer.isBuffer(response) || isJSX(response)) {
+      } else if (typeof response === "string" || response instanceof Response || response instanceof Readable || response instanceof ReadableStream || Buffer.isBuffer(response) || isJSX(response)) {
         break;
       } else if (typeof response === "object" && route.endsWith("/[...guard]")) {
         Object.assign(props, response);

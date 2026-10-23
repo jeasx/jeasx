@@ -183,7 +183,9 @@ async function handler(request: FastifyRequest, reply: FastifyReply) {
         break;
       } else if (
         typeof response === "string" ||
+        response instanceof Response ||
         response instanceof Readable ||
+        response instanceof ReadableStream ||
         Buffer.isBuffer(response) ||
         isJSX(response)
       ) {
