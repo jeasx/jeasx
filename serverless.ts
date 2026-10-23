@@ -87,7 +87,8 @@ export default FASTIFY_SERVER(
     }),
 );
 
-const STATIC_FILE = Symbol("static-file");
+// Used as marker for static file routes.
+const STATIC_FILE_ROUTE = Symbol("static-file-route");
 
 /**
  * Resolves route module based on the request path and execute it.
@@ -108,7 +109,7 @@ async function handler(request: FastifyRequest, reply: FastifyReply) {
     // Execute route handlers for current request
     for (const route of generateRoutes(request.path)) {
       // Try to serve static file
-      if (route === STATIC_FILE) {
+      if (route === STATIC_FILE_ROUTE) {
         if (reply.file) {
           reply.status(reply.file.statusCode);
           reply.headers(reply.file.headers);
@@ -226,7 +227,7 @@ async function handler(request: FastifyRequest, reply: FastifyReply) {
  *  "/a/b/c/[404]","/a/b/[404]","/a/[404]","/[404]"
  * ]
  */
-function* generateRoutes(path: string): Generator<string | typeof STATIC_FILE> {
+function* generateRoutes(path: string): Generator<string | typeof STATIC_FILE_ROUTE> {
   // Transform given path into array of all its segments.
   // "/a/b/c" => ["", "/a", "/a/b/", "/a/b/c"]
   const segments = [""];
@@ -245,7 +246,7 @@ function* generateRoutes(path: string): Generator<string | typeof STATIC_FILE> {
   }
 
   // Append the marker for static files
-  yield STATIC_FILE;
+  yield STATIC_FILE_ROUTE;
 
   // "/a/b/c" => ["/a/b/[c]", "/a/b/c/[index]"]
   const lastSlash = edgeSegment.lastIndexOf("/") + 1;
