@@ -302,6 +302,10 @@ async function tryFile(request: FastifyRequest): Promise<BaseSendResult | undefi
 
   if (NODE_ENV_IS_DEVELOPMENT) {
     for (const directory of ["dist", "public"]) {
+      // Don't expose compiled server routes and their sourcemaps.
+      if (directory === "dist" && /\[.+\]\.js(\.map)?$/.test(request.path)) {
+        continue;
+      }
       try {
         if ((await stat(join(CWD, directory, request.path))).isFile()) {
           // Dynamic path loading is restricted to development environments;

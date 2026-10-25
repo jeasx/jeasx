@@ -1,5 +1,11 @@
 # Changelog
 
+## XXXX-XX-XX - Jeasx X.XX.X released
+
+- In development mode, compiled server routes (e.g. `/[index].js`)
+  and their sourcemaps could be fetched from `dist` as static files,
+  exposing server-side code. These files are no longer served.
+
 ## 2026-10-23 - Jeasx 2.10.7 released
 
 ### Core changes
