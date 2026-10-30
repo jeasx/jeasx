@@ -35,9 +35,9 @@ jobs:
       - run: npm run build
 
       - run: npm version ${{ inputs.version }}
-      - run: git push --follow-tags
-
+      - run: git push --dry-run --follow-tags
       - run: npm publish
+      - run: git push --follow-tags
 
       - name: Create GitHub release
         run: gh release create "v$(node -p 'require("./package.json").version')" --generate-notes
