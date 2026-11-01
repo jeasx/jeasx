@@ -7,20 +7,26 @@ switch (process.argv[2]) {
     break;
 
   case "build":
+    await clean();
     await import("./build.js");
     break;
 
   case "dev":
     process.env.NODE_ENV = "development";
+    await clean();
     await import("./build.js");
     await import("./start.js");
     break;
 
   case "clean":
-    await fs.rm("dist", { recursive: true, force: true, maxRetries: 3 });
+    await clean();
     break;
 
   default:
     console.info(`💡 Usage: jeasx [start|build|dev|clean]`);
     process.exit(1);
+}
+
+async function clean() {
+  await fs.rm("dist", { recursive: true, force: true, maxRetries: 3 });
 }
