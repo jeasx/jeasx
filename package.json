@@ -30,10 +30,10 @@
   },
   "dependencies": {
     "@fastify/send": "4.2.0",
-    "@types/node": "26.6.5",
+    "@types/node": "26.6.6",
     "esbuild": "0.28.2",
     "fastify": "5.12.7",
-    "jsx-async-runtime": "2.3.0"
+    "jsx-async-runtime": "3.0.0"
   },
   "allowScripts": {
     "esbuild": true
