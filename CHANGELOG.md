@@ -1,10 +1,408 @@
 # Changelog
 
-## XXXX-XX-XX - Jeasx X.XX.X released
+## XXXX-XX-XX - Jeasx 3.0.0 released
 
-- In development mode, compiled server routes (e.g. `/[index].js`)
-  and their sourcemaps could be fetched from `dist` as static files,
-  exposing server-side code. These files are no longer served.
+> **The promise you made.** Await anything, stream everything.
+
+🚀 Jeasx 3 streams your pages. JSX is now sent to the browser while it is
+still rendering, powered by `jsx-async-runtime@3`, which also renders about
+2x faster than v2. This release also hardens request routing, the build and
+the dev server.
+
+There are breaking changes in Jeasx and in `jsx-async-runtime`. Each one has
+a migration recipe below. Most projects only need these steps:
+
+1. Replace `{{ html: "..." }}` with `{html("...")}`.
+2. Replace `class`/`style` objects with strings.
+3. Move `this.errorHandler` to `setErrorHandler` in `jeasx.config.js`.
+4. If your `responseHandler` changes the HTML, read the stream into a string first.
+
+👀 Want to see it in action? [Jeasx Expo](https://expo.jeasx.dev) has many
+new examples that show off the new features:
+
+- **Streaming:**
+  [Streaming HTML](https://expo.jeasx.dev/streaming),
+  [Parallel loading](https://expo.jeasx.dev/parallel),
+  [Out-of-order streaming](https://expo.jeasx.dev/out-of-order),
+  [Async iterables](https://expo.jeasx.dev/async-iterable),
+  [ReadableStreams](https://expo.jeasx.dev/readable-stream),
+  [Infinite scroll](https://expo.jeasx.dev/infinite-scroll)
+- **Live updates and responses:**
+  [Server-Sent Events](https://expo.jeasx.dev/sse),
+  [Chat with SSE](https://expo.jeasx.dev/chat),
+  [Response objects](https://expo.jeasx.dev/response),
+  [Content negotiation](https://expo.jeasx.dev/negotiation),
+  [SVG charts](https://expo.jeasx.dev/charts)
+- **JSX:**
+  [Render props](https://expo.jeasx.dev/render-props),
+  [What JSX renders](https://expo.jeasx.dev/values),
+  [Internationalization](https://expo.jeasx.dev/i18n),
+  [Unit tests](https://expo.jeasx.dev/testing)
+- **Apps and security:**
+  [Planet Gallery with view transitions](https://expo.jeasx.dev/view-transitions),
+  [Login and sessions](https://expo.jeasx.dev/login),
+  [Signed cookies](https://expo.jeasx.dev/signed-cookies),
+  [A/B testing](https://expo.jeasx.dev/ab-testing)
+
+### 💥 Breaking changes in Jeasx
+
+#### JSX responses are streamed, so `responseHandler` gets a stream
+
+Pages are rendered with `jsxToStream` instead of `jsxToString`. The browser
+gets the first bytes while slow parts of the page (e.g. awaited data) are
+still rendering. For JSX, the `payload` passed to `this.responseHandler` is
+now a `ReadableStream<string>` instead of a `string`.
+
+**Migration:** if your `responseHandler` only sets headers or passes the
+payload through, nothing changes. If it changes the HTML (e.g. to format or
+minify it), read the stream into a string first:
+
+```js
+this.responseHandler = async (payload) => {
+  if (payload instanceof ReadableStream) {
+    payload = (await Array.fromAsync(payload)).join("");
+  }
+  return typeof payload === "string" ? format(payload) : payload;
+};
+```
+
+Pages that are post-processed this way are not streamed. See
+[Prettify HTML](https://expo.jeasx.dev/prettier) and
+[Extract styles](https://expo.jeasx.dev/cheerio) for working examples.
+
+#### `this.errorHandler` was removed
+
+Errors thrown by routes and guards now go to Fastify's error handler. Jeasx
+no longer looks for `this.errorHandler`.
+
+**Migration:** register an error handler in `jeasx.config.js`. It runs for
+errors from all routes:
+
+```js
+// jeasx.config.js
+export default {
+  FASTIFY_SERVER: (fastify) =>
+    fastify.setErrorHandler(async (error, request, reply) => {
+      request.log.error(error);
+      reply.status(error.statusCode ?? 500).type("text/html; charset=utf-8");
+      return "<h1>Something went wrong</h1>";
+    }),
+};
+```
+
+Without your own handler, Fastify answers with a JSON error. `jeasx.config.js`
+is not compiled by esbuild, so it can't contain JSX.
+
+**Errors while streaming:** the error handler only runs for errors thrown
+before the first chunk is sent, e.g. in a guard or before the route returns
+its JSX. Once streaming has started, the status and headers are already sent,
+and an error thrown by an async component cuts the page off. Wrap risky
+components in an error boundary that renders them to a string first:
+
+```jsx
+import { html, jsxToString } from "jsx-async-runtime";
+
+async function ErrorBoundary({ fallback, children }) {
+  try {
+    return html(await jsxToString.call(this, children));
+  } catch (error) {
+    this.request.log.error(error);
+    return fallback;
+  }
+}
+
+<ErrorBoundary fallback={<p>This section could not be loaded.</p>}>
+  <RiskyComponent />
+</ErrorBoundary>;
+```
+
+See [Catch errors](https://expo.jeasx.dev/error-handler) for all three cases.
+
+#### `request.path` is decoded
+
+`request.path` is now URL-decoded, e.g. `/caf%C3%A9` becomes `/café`.
+Backslashes become slashes, and repeated slashes are collapsed (`//a//b`
+becomes `/a/b`).
+
+**Migration:** remove `decodeURIComponent(request.path)` from your routes.
+Decoding twice fails for paths that contain a `%`. Use `request.url` if
+you need the raw path.
+
+#### The dev server only listens on `localhost`
+
+`jeasx dev` binds to `localhost`, so other machines on your network can't
+reach it. `jeasx start` still listens on all interfaces (`::`).
+
+**Migration:** if you run `jeasx dev` in a container or VM, or test from
+another device, set `HOST`:
+
+```sh
+HOST=:: npx jeasx dev
+```
+
+#### Missing imports in routes are errors
+
+Before, if a route imported a module that doesn't exist, the route was
+skipped as if it didn't exist (usually ending in a 404). Now the error is
+thrown, so you see the real cause.
+
+**Migration:** fix or remove the import that is reported.
+
+#### Changed responses
+
+- If no route answers and there is no `[404]` route, the response is a
+  `404` instead of an empty `200`.
+- Objects returned by guards are only used as props. They are never sent as
+  the response, even if no route answers.
+- Static files are only served for `GET` and `HEAD`. Other methods (e.g. a
+  `POST` to `/form`) go to your routes, even if a file with that path exists.
+- If a static file is missing or ignored (e.g. a dotfile), `[...path]` and
+  `[404]` routes answer instead of the plain error page of `@fastify/send`.
+- A `ReadableStream` or Node.js stream returned without a content type is
+  sent as `text/html; charset=utf-8`, like strings and buffers.
+
+**Migration:** set a status code or content type explicitly where you
+relied on the old behavior. For example, register a Fastify route in
+`FASTIFY_SERVER` for non-`GET` requests to a static file.
+
+#### `FASTIFY_SEND_OPTIONS.root` is always the project directory
+
+Jeasx passes file paths relative to the project directory, so a custom
+`root` broke file serving. It is now always set to the project directory.
+
+**Migration:** remove `root` from `FASTIFY_SEND_OPTIONS`.
+
+#### `dist` is cleaned before every build
+
+`jeasx build` and `jeasx dev` delete `dist` before building. This removes
+outputs of deleted routes, which could otherwise still be served.
+
+**Migration:** don't put files into `dist` by hand. Use `public` instead.
+
+### 🔒 Security
+
+- **Compiled routes were exposed in development:** server routes
+  (e.g. `/[index].js`), their sourcemaps and other outputs could be fetched
+  from `dist` as static files. This exposed server-side code. They are no
+  longer served, including Windows tricks like `/[index].js.` or
+  `/[index].js::$DATA`.
+- **Special routes can't be requested by name:** requests like `/[index]`,
+  `/[...guard]`, `/[...path]` or `/[--metadata--]` no longer call these
+  routes directly. The check ignores case, because case-insensitive file
+  systems (macOS, Windows) would otherwise resolve `/[--METADATA--]`.
+  `/a/404` is still answered by `/a/[404]`.
+- **Malformed paths are rejected:** paths with invalid URL encoding, null
+  bytes or `.`/`..` segments are rejected with `400`. Repeated slashes are
+  collapsed, so `//evil.com` can't be mistaken for another host
+  (e.g. in a `<base>` tag).
+- **Route and file lookups ignore inherited keys:** a path like
+  `/constructor` no longer matches properties of `Object.prototype`.
+- **Fewer leaked file handles:** file streams are closed when the response
+  ends or is aborted. This includes routes that send a stream with
+  `reply.send()`.
+- **In production, other outputs of server routes aren't static files:**
+  CSS or other files that esbuild writes for server routes
+  (e.g. `[index].css`) are no longer served. Before, only sourcemaps were
+  skipped.
+
+### ✨ New features
+
+- **Async config options:** all options in `jeasx.config.js`
+  (`ESBUILD_SERVER_OPTIONS`, `ESBUILD_BROWSER_OPTIONS`,
+  `FASTIFY_SERVER_OPTIONS`, `FASTIFY_SEND_OPTIONS`) and `FASTIFY_SERVER`
+  can be async. You can import build-only plugins lazily, so they aren't
+  loaded in production:
+
+  ```js
+  export default {
+    ESBUILD_BROWSER_OPTIONS: async () => ({
+      plugins: [(await import("esbuild-sass-plugin")).sassPlugin()],
+    }),
+  };
+  ```
+
+- **Dotfiles in production:** files like `public/.well-known/security.txt`
+  are now part of the production build. Whether they are served depends on
+  the `dotfiles` option of `FASTIFY_SEND_OPTIONS` (default: ignored), the
+  same as in development:
+
+  ```js
+  export default {
+    FASTIFY_SEND_OPTIONS: () => ({ dotfiles: "allow" }),
+  };
+  ```
+
+- **Graceful shutdown:** the server closes on `SIGINT` (Ctrl+C) and
+  `SIGTERM` and then exits. It stops cleanly in containers (where Node runs
+  as PID 1) and while the esbuild watcher is running. Press Ctrl+C a second
+  time to kill it if the shutdown hangs.
+
+### 🛠️ Fixes
+
+- `jeasx dev` waits for the first build before starting the server, so the
+  first requests don't fail on an empty `dist`. Build errors are logged and
+  the watcher keeps running.
+- If a file exists in both `dist` and `public`, `dist` wins in production,
+  as it does in development. Symbolic links are skipped in production builds.
+- Config, routes and metadata are imported with `pathToFileURL`, which
+  fixes paths on Windows and paths with special characters.
+- A directly requested `/a/404` page keeps its status only if it is answered
+  by `/a/[404]`. If a parent `[404]` route answers, the status is `404`.
+- File paths with special characters (e.g. `#` or `%`) are served correctly.
+- esbuild no longer forces colored output, so logs in CI and log files
+  don't contain color codes.
+- The docs in `env.js` explain the load order: a variable that is already
+  set is never overwritten, and `NODE_ENV` must come from the environment.
+
+### 📦 Updates to `jsx-async-runtime@3.0.0`
+
+Jeasx depends on `jsx-async-runtime` for all rendering, so these changes
+affect every Jeasx project. See the
+[full changelog](https://github.com/jeasx/jsx-async-runtime/blob/main/CHANGELOG.md)
+for every detail.
+
+#### 💥 Breaking changes
+
+**Raw markup needs `html()`**
+
+`{{ html: "..." }}` objects render nothing. This closes an injection path,
+e.g. through parsed JSON with an `html` key.
+
+```jsx
+// Before
+{
+  {
+    html: "<!DOCTYPE html>";
+  }
+}
+
+// After
+import { html } from "jsx-async-runtime";
+{
+  html("<!DOCTYPE html>");
+}
+```
+
+**Escaping can't be turned off**
+
+`this.jsxEscapeHTML = false` was removed.
+
+**Migration:** wrap trusted markup in `html()`. To pass trusted text through
+unescaped everywhere, use a `this.jsxToString` override that returns it as is.
+
+**`class` and `style` must be strings**
+
+Objects and arrays are no longer converted. They render as JSON, like other
+attributes, and TypeScript only accepts strings.
+
+```jsx
+// Before
+<div class={["card", { active }]} style={{ color, "font-size": "2em" }} />;
+
+// After (e.g. with clsx)
+import clsx from "clsx";
+<div class={clsx("card", { active })} style={`color: ${color}; font-size: 2em`} />;
+```
+
+**Components get `children` as written**
+
+As in React, a single child is passed as is, several children as an array,
+and there is no `children` prop without children. Before, `children` was
+always a flattened array without `null` and booleans.
+
+**Migration:** most components that only render `{children}` keep working.
+If you call array methods on `children`, normalize it first:
+
+```jsx
+function List({ children }) {
+  return (
+    <ul>
+      {[children ?? []].flat().map((child) => (
+        <li>{child}</li>
+      ))}
+    </ul>
+  );
+}
+```
+
+Generators passed as children are read at render time, so they can only be
+rendered once.
+
+**Other breaking changes**
+
+- **Text is plain values:** text children are strings, numbers or bigints
+  instead of `{ type: "textNode", text }`. The `textNode` type was removed.
+- **Only real elements render:** hand-built objects like
+  `{ type: "tag", tag: "b", props }` render nothing. Use `createElement`
+  instead. Copies of real elements (`{ ...element, tag: "i" }`) still render.
+- **Invalid component types throw:** a tag that is neither a string nor a
+  function (e.g. `undefined` from a missing import) fails with a `TypeError`
+  instead of rendering nothing. With the Jeasx error handling above, you now
+  see these errors.
+- **`jsxToString` can return synchronously:** it returns
+  `string | Promise<string>`. `await jsxToString(...)` keeps working.
+- **Void tags ignore children:** `<br>text</br>` renders `<br>`.
+- **Override scope:** a `this.jsxToString` override set by a component also
+  applies to the siblings that follow it.
+- **Exports:** the `Tag` type was renamed to `ElementNode`. `jsxsDEV` was
+  removed from `jsx-async-runtime/jsx-dev-runtime`.
+- **Stricter types:** `aria-*` attributes no longer accept booleans, and
+  `contenteditable`, `spellcheck`, `translate` and `writingsuggestions` no
+  longer accept `false`. Use strings like `aria-hidden="true"` or
+  `spellcheck="false"`. Add custom elements to `JSX.IntrinsicElementAttributes`
+  instead of `JSX.IntrinsicElements`.
+
+#### ✨ New features
+
+- **`jsxToStream`** renders to a `ReadableStream<string>`. Jeasx uses it for
+  all JSX responses. It sends what is rendered so far whenever rendering
+  waits for async work, splits large pages into ~16 KB chunks, waits for
+  slow clients and stops when the client disconnects.
+- **`isJsxNode`** checks whether a value is an element or `html()` markup
+  and narrows the type in TypeScript.
+- **More child types:**
+  - Promises: `<div>{fetchUser()}</div>`
+  - Iterables: `Set`, generators, `map.values().map(...)`
+  - Async iterables: async generator components and `ReadableStream`,
+    rendered in order as items arrive
+  - Bytes (`Uint8Array`, `Buffer`) as escaped UTF-8 text:
+    `<pre>{response.body}</pre>`
+  - Objects with their own `toString` (`Date`, `URL`, `Error`, your classes)
+    as escaped text
+  - Functions as render props:
+    `<Loader>{(data) => <p>{data}</p>}</Loader>`
+- **Promise attributes:** `<img src={loadImageUrl()} />`. All promise
+  attributes of a tag are awaited in parallel.
+- **Better types:** async components with a `Promise<JSX.Element>` return
+  type, `key` on every component, `null` attributes, and JSX types for
+  `"jsx": "react-jsxdev"`.
+
+#### 🔒 Security
+
+- Only markup created by `html()` is rendered raw.
+- Elements carry a Symbol marker, so JSON look-alikes such as
+  `{"type":"tag","tag":"script",...}` render nothing.
+- Attribute names with whitespace, quotes, `<`, `>`, `/`, `=`, `&` or control
+  characters are skipped, and so are invalid tag names (with their children).
+  Valid names like `onmouseover` or `script` still render, so allowlist
+  attributes and tags that come from untrusted input.
+- Keys inherited from a polluted `Object.prototype` are ignored.
+
+#### 🛠️ Fixes
+
+- Rejected promises in props no longer crash Node with an unhandled
+  rejection. The error goes to the render.
+- Streams that are never rendered (e.g. in a void tag or after a failed
+  render) are closed, so they don't keep connections or files open.
+- Functions and symbols in attributes are skipped. Event handlers no longer
+  print their source code.
+- `key` is never rendered, and components don't receive it in their props.
+- `createElement` no longer modifies the props you pass in.
+- Rendering without a context gives each render its own empty context, so
+  data no longer leaks between renders.
+- `escapeEntities` converts non-strings with `String()` before escaping.
+
+Dependency updates: `jsx-async-runtime@3.0.0`, `@types/node@26.6.6`
 
 ## 2026-10-23 - Jeasx 2.10.7 released
 
