@@ -1,6 +1,6 @@
 # Changelog
 
-## XXXX-XX-XX - Jeasx 3.0.0 released
+## 2026-11-02 - Jeasx 3.0.0 released
 
 > **The promise you made.** Await anything, stream everything.
 
@@ -18,31 +18,10 @@ a migration recipe below. Most projects only need these steps:
 4. If your `responseHandler` changes the HTML, read the stream into a string first.
 
 👀 Want to see it in action? [Jeasx Expo](https://expo.jeasx.dev) has many
-new examples that show off the new features:
-
-- **Streaming:**
-  [Streaming HTML](https://expo.jeasx.dev/streaming),
-  [Parallel loading](https://expo.jeasx.dev/parallel),
-  [Out-of-order streaming](https://expo.jeasx.dev/out-of-order),
-  [Async iterables](https://expo.jeasx.dev/async-iterable),
-  [ReadableStreams](https://expo.jeasx.dev/readable-stream),
-  [Infinite scroll](https://expo.jeasx.dev/infinite-scroll)
-- **Live updates and responses:**
-  [Server-Sent Events](https://expo.jeasx.dev/sse),
-  [Chat with SSE](https://expo.jeasx.dev/chat),
-  [Response objects](https://expo.jeasx.dev/response),
-  [Content negotiation](https://expo.jeasx.dev/negotiation),
-  [SVG charts](https://expo.jeasx.dev/charts)
-- **JSX:**
-  [Render props](https://expo.jeasx.dev/render-props),
-  [What JSX renders](https://expo.jeasx.dev/values),
-  [Internationalization](https://expo.jeasx.dev/i18n),
-  [Unit tests](https://expo.jeasx.dev/testing)
-- **Apps and security:**
-  [Planet Gallery with view transitions](https://expo.jeasx.dev/view-transitions),
-  [Login and sessions](https://expo.jeasx.dev/login),
-  [Signed cookies](https://expo.jeasx.dev/signed-cookies),
-  [A/B testing](https://expo.jeasx.dev/ab-testing)
+new examples that show off the new features, e.g.
+[Streaming HTML](https://expo.jeasx.dev/streaming),
+[Out-of-order streaming](https://expo.jeasx.dev/out-of-order) and
+[Server-Sent Events](https://expo.jeasx.dev/sse).
 
 ### 💥 Breaking changes in Jeasx
 
@@ -66,9 +45,7 @@ this.responseHandler = async (payload) => {
 };
 ```
 
-Pages that are post-processed this way are not streamed. See
-[Prettify HTML](https://expo.jeasx.dev/prettier) and
-[Extract styles](https://expo.jeasx.dev/cheerio) for working examples.
+Pages that are post-processed this way are not streamed.
 
 #### `this.errorHandler` was removed
 
@@ -90,8 +67,11 @@ export default {
 };
 ```
 
-Without your own handler, Fastify answers with a JSON error. `jeasx.config.js`
-is not compiled by esbuild, so it can't contain JSX.
+Without your own handler, Fastify answers with a JSON error. `jeasx.config.js` is not compiled by esbuild by default, so it can't contain JSX. If you want JSX in your config, write it as `jeasx.config.jsx` and compile it with your own npm script:
+
+```sh
+esbuild jeasx.config.jsx --outfile=jeasx.config.js --platform=node --format=esm --jsx=automatic --jsx-import-source=jsx-async-runtime
+```
 
 **Errors while streaming:** the error handler only runs for errors thrown
 before the first chunk is sent, e.g. in a guard or before the route returns
