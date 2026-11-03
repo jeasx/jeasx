@@ -1,5 +1,8 @@
 # Jeasx - the ease of JSX with the power of SSR
 
+[![npm](https://img.shields.io/npm/v/jeasx)](https://www.npmjs.com/package/jeasx)
+[![license](https://img.shields.io/npm/l/jeasx)](LICENSE.txt)
+
 Jeasx is a server-side rendering framework for Node.js. You write pages and
 API endpoints as async JSX functions, and Jeasx renders them on the server and
 streams the HTML to the browser. Routing comes from your file structure.
