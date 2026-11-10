@@ -214,14 +214,14 @@ async function handler(request: FastifyRequest, reply: FastifyReply) {
       // Props are not a response: never send them if no other route answers.
       response = undefined;
       continue;
-    } else if (response === undefined) {
+    } else if (response == null) {
       continue;
     } else {
       break;
     }
   }
   // No route answered and no [404] exists: don't reply with an empty 200.
-  if (response === undefined && reply.statusCode === 200) {
+  if (response == null && reply.statusCode === 200) {
     reply.status(404);
   }
 
@@ -344,9 +344,10 @@ async function tryFile(request: FastifyRequest): Promise<BaseSendResult | undefi
   if (NODE_ENV_IS_DEVELOPMENT) {
     for (const directory of ["dist", "public"]) {
       // Don't expose compiled server routes and their other outputs (sourcemaps, CSS).
-      // Not anchored at the end, as some file systems ignore trailing dots and
-      // stream names (Windows: "[index].js.", "[index].js::$DATA").
-      if (directory === "dist" && /\]\./u.test(request.path)) {
+      // Only the last segment counts, like in the production build (see build.js).
+      // The suffix after "]." is not anchored, as some file systems ignore trailing
+      // dots and stream names (Windows: "[index].js.", "[index].js::$DATA").
+      if (directory === "dist" && /\[[^/]+\]\.[^/]*$/u.test(request.path)) {
         continue;
       }
       try {

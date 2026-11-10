@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- A route returning `null` no longer answers with an empty 200: the next route is tried and the 404 fallback applies, as for `undefined`.
+- In development, only hide `dist` files whose last segment is a route output (`[name].ext`), matching the production build; a directory like `[x].d/style.css` is now served in both modes
+
 ## 2026-11-02 - Jeasx 3.0.0 released
 
 > **The promise you made.** Await anything, stream everything.

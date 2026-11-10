@@ -102,13 +102,13 @@ async function handler(request, reply) {
       Object.assign(props, response);
       response = void 0;
       continue;
-    } else if (response === void 0) {
+    } else if (response == null) {
       continue;
     } else {
       break;
     }
   }
-  if (response === void 0 && reply.statusCode === 200) {
+  if (response == null && reply.statusCode === 200) {
     reply.status(404);
   }
   return await renderResponse(context, response);
@@ -168,7 +168,7 @@ async function tryFile(request) {
   }
   if (NODE_ENV_IS_DEVELOPMENT) {
     for (const directory of ["dist", "public"]) {
-      if (directory === "dist" && /\]\./u.test(request.path)) {
+      if (directory === "dist" && /\[[^/]+\]\.[^/]*$/u.test(request.path)) {
         continue;
       }
       try {
