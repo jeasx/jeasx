@@ -1,11 +1,35 @@
 # Changelog
 
-## Unreleased
+## 2026-11-11 - Jeasx 3.0.1 released
 
-- A route returning `null` no longer answers with an empty 200: the next route is tried and the 404 fallback applies, as for `undefined`.
-- In development, only hide `dist` files whose last segment is a route output (`[name].ext`), matching the production build; a directory like `[x].d/style.css` is now served in both modes
+🔒 This patch release includes a security update for Fastify ([GHSA-3qgw-9275-xf8w](https://github.com/fastify/fastify/security/advisories/GHSA-3qgw-9275-xf8w)). Please update.
 
-Dependency updates: `jsx-async-runtime@3.0.1`, `fastify@5.12.8`, `@fastify/send@4.2.1`
+### 🐛 Fixes
+
+- **`null` from a route now means "no response".** Before, a route returning
+  `null` sent an empty 200. Now it behaves like `undefined`: the next route
+  is tried and the 404 fallback applies.
+- **Dev server serves the same `dist` files as production.** In development,
+  a `dist` file is now hidden only when its last path segment is a route
+  output (`[name].ext`). Before, a file inside a bracketed directory, like
+  `[x].d/style.css`, was hidden in development but served in production.
+
+### 🐛 Fixes in `jsx-async-runtime`
+
+- **No more crash from deeply nested promises.** `jsx()` only guarded promises
+  one level deep in a plain object. A promise nested deeper (e.g.
+  `data={[{ p }]}`) could crash Node with an unhandled rejection when the
+  render failed on it. It is now marked as handled first.
+- **Streams are unlocked after rendering.** `readStream()` never called
+  `releaseLock()`, so a `ReadableStream` child stayed locked after it was
+  fully rendered. The lock is now released when the stream ends, like
+  `for await` does.
+
+### 📦 Dependency updates
+
+- `fastify@5.12.8`
+- `@fastify/send@4.2.1`
+- `jsx-async-runtime@3.0.1`
 
 ## 2026-11-02 - Jeasx 3.0.0 released
 
