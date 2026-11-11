@@ -1,6 +1,6 @@
 {
   "name": "jeasx",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Jeasx - the ease of JSX with the power of SSR",
   "keywords": [
     "async",
