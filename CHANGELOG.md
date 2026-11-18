@@ -1,5 +1,13 @@
 # Changelog
 
+## UNRELEASED
+
+### 🐛 Fixes
+
+- **Type declaration for `env.js`.** The package now ships `env.d.ts`, so
+  TypeScript knows the signature of the `env()` function exported by
+  `jeasx/env.js`.
+
 ## 2026-11-11 - Jeasx 3.0.1 released
 
 🔒 This patch release includes a security update for Fastify ([GHSA-3qgw-9275-xf8w](https://github.com/fastify/fastify/security/advisories/GHSA-3qgw-9275-xf8w)). Please update.
