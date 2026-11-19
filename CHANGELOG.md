@@ -7,6 +7,12 @@
 - **Type declaration for `env.js`.** The package now ships `env.d.ts`, so
   TypeScript knows the signature of the `env()` function exported by
   `jeasx/env.js`.
+- **Robust shutdown for the `jeasx start`/`jeasx dev` servers.** Signal
+  handlers (`SIGINT`/`SIGTERM`) are now registered before `listen()`, so a
+  signal received while the server is still starting up is handled, too.
+  Also, a failing `serverless.close()` no longer crashes with an unhandled
+  rejection or hangs the shutdown: the error is logged and the process exits
+  with status 1.
 
 ## 2026-11-11 - Jeasx 3.0.1 released
 
