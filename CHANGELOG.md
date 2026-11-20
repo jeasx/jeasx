@@ -1,6 +1,6 @@
 # Changelog
 
-## UNRELEASED
+## 2026-11-20 - Jeasx 3.0.2 released
 
 ### 🐛 Fixes
 
@@ -13,6 +13,28 @@
   Also, a failing `serverless.close()` no longer crashes with an unhandled
   rejection or hangs the shutdown: the error is logged and the process exits
   with status 1.
+
+### 🔄 Changes in `jsx-async-runtime` 3.0.2
+
+- **Leading newline in `<pre>`, `<textarea>` and `<listing>`.** These tags
+  now always get a newline right after the start tag, like React does.
+  Browsers drop the first newline there, so a leading newline of the content
+  (e.g. a `<textarea>` value) was lost before. The rendered page looks the
+  same, but the markup changes (`<pre>x</pre>` becomes `<pre>\nx</pre>`), so
+  exact-string snapshots of these tags need an update.
+- **Better streaming.** Chunks are capped at 16 KB. Markup rendered so far is
+  flushed before an async iterable child (async generator, `ReadableStream`)
+  is asked for its next item, so slow sources no longer delay it. Cancelling
+  a response now stops endless iterables instead of hanging at full CPU, and
+  a `ReadableStream` child is unlocked when rendering stops early, too.
+- **Fewer unhandled rejections.** Promises nested up to 5 levels deep in
+  plain-object props (e.g. `data={{ user: { profile: loadProfile() } }}`)
+  are now guarded when the element is created, so a rejection can no longer
+  crash Node when rendering never reaches it.
+
+### 📦 Dependency updates
+
+- `jsx-async-runtime@3.0.2`
 
 ## 2026-11-11 - Jeasx 3.0.1 released
 
