@@ -4,13 +4,12 @@
 
 ### ✨ Features
 
-- **First-class Bun support.** With this release, Bun becomes a
-  first-class bundler and runtime for Jeasx. When Jeasx runs on Bun, it bundles with
+- **First-class Bun support.** When Jeasx runs on Bun, it bundles with
   Bun's native bundler (`Bun.build`) instead of `esbuild`, so running and
   building share one toolchain.
 
-  As the `jeasx` command starts with Node by default, use the `-b` flag to
-  run it on Bun (`bunx -b jeasx dev`), or add a `bunfig.toml` to your
+  As the `jeasx` command starts with Node by default, use the `--bun` flag
+  to run it on Bun (`bunx --bun jeasx dev`), or add a `bunfig.toml` to your
   project to always use Bun:
 
   ```toml
@@ -18,10 +17,9 @@
   bun = true
   ```
 
-  Both bundlers produce the same layout in `dist`, so build and runtime can
-  be mixed: bundle with Bun and run on Node, or bundle with esbuild and run
-  on Bun. This also keeps Jeasx independent of a single bundler: if one
-  project stalls, you can switch to the other.
+  Both bundlers produce the same layout in `dist`, so you can bundle with
+  one and run on the other. This also keeps Jeasx independent of a single bundler:
+  if one project stalls, you can switch to the other.
 
   Bun's bundler is configured via the new `BUN_SERVER_OPTIONS` and
   `BUN_BROWSER_OPTIONS` functions in `jeasx.config.js`, just like esbuild
@@ -50,17 +48,21 @@
 
 - **JSX dev runtime in development.** Builds are now compiled with `jsxDev`
   when `NODE_ENV=development`, so JSX elements carry source information for
-  easier debugging.
+  easier debugging. This is enabled automatically by `jeasx dev`.
 
 ### 🔄 Changes
 
+- ⚠️ **Breaking: manifest renamed.** The production route/file mapping moved
+  from `dist/[--metadata--].js` to `dist/.jeasx.manifest.js`. It is no
+  longer a route-like file name and is excluded from the static file
+  mapping. Rebuild existing `dist` folders with `jeasx build` before running
+  `jeasx start`. As the new file name starts with a dot, make sure your
+  deployment doesn't skip dotfiles (e.g. copy/rsync globs, upload tools or
+  `.dockerignore` patterns), otherwise the production server won't start.
 - **Build split into bundle and manifest steps.** `build.js` was replaced by
   `bundle-esbuild.js`/`bundle-bun.js` (bundling) and `build-manifest.js`
-  (route and file mapping for production).
-- **Manifest renamed.** The production route/file mapping moved from
-  `dist/[--metadata--].js` to `dist/.jeasx.manifest.js`. It is no longer a
-  route-like file name and is excluded from the static file mapping. Rebuild
-  existing `dist` folders with `jeasx build` before running `jeasx start`.
+  (route and file mapping for production). This only matters if you call
+  these scripts directly (e.g. in an ejected setup like `jeasx-develop`).
 
 ### 📦 Dependency updates
 

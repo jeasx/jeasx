@@ -7,8 +7,9 @@ Jeasx is a server-side rendering framework for Node.js. You write pages and
 API endpoints as async JSX functions, and Jeasx renders them on the server and
 streams the HTML to the browser. Routing comes from your file structure.
 
-It is built on [Fastify](https://fastify.dev), [esbuild](https://esbuild.github.io)
-and [jsx-async-runtime](https://github.com/jeasx/jsx-async-runtime).
+It is built on [Fastify](https://fastify.dev),
+[jsx-async-runtime](https://github.com/jeasx/jsx-async-runtime) and either
+[esbuild](https://esbuild.github.io) or [Bun](https://bun.com) as bundler.
 
 This is the Jeasx core repository. For guides, examples and the project
 template, visit <https://www.jeasx.dev>. Live examples are at
