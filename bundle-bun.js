@@ -11,7 +11,7 @@ const CONFIG = (await import(pathToFileURL(join(CWD, "jeasx.config.js")).href)).
 const NODE_ENV_IS_DEVELOPMENT = process.env.NODE_ENV === "development";
 
 // Max output files listed in the build summary.
-const MAX_LISTED_OUTPUTS = 10;
+const MAX_LISTED_OUTPUTS = process.stdout.rows ? Math.floor(process.stdout.rows / 2) : Infinity;
 
 /** @type {Bun.BuildConfig} */
 const COMMON_OPTIONS = {
