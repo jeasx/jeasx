@@ -36,6 +36,8 @@
   };
   ```
 
+  For type hints, install `@types/bun` as a dev dependency.
+
   Like all options in `jeasx.config.js`, these functions may be `async`
   (returning a `Promise<import("bun").BuildConfig>`), e.g. to import
   build-only plugins lazily.

@@ -81,7 +81,12 @@ async function build() {
         process.exit(1);
       }
     }
-    console.info(styleText("green", `⚡ Done in ${Math.round(performance.now() - start)}ms`));
+    const duration = Math.round(performance.now() - start);
+    console.info(
+      result.success
+        ? styleText("green", `⚡ Done in ${duration}ms`)
+        : styleText("red", `✘ Failed in ${duration}ms`),
+    );
   }
 }
 
