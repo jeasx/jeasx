@@ -3,7 +3,7 @@ import { rm } from "node:fs/promises";
 
 const SCRIPTS = {
   START: "./start.js",
-  BUNDLE: process.versions.bun ? "./bundle-bun.js" : "./bundle-esbuild.js",
+  BUNDLE: process.isBun ? "./bundle-bun.js" : "./bundle-esbuild.js",
   BUILD_MANIFEST: "./build-manifest.js",
 };
 
