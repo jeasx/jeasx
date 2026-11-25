@@ -81,7 +81,7 @@ async function build() {
         process.exit(1);
       }
     }
-    console.info(`⚡ ${styleText("green", `Done in ${Math.round(performance.now() - start)}ms`)}`);
+    console.info(styleText("green", `⚡ Done in ${Math.round(performance.now() - start)}ms`));
   }
 }
 
