@@ -28,7 +28,7 @@ const COMMON_OPTIONS = {
 /** @type {Bun.BuildConfig} */
 const SERVER_OPTIONS = {
   ...COMMON_OPTIONS,
-  entrypoints: ["src/**/\\[*\\].*"],
+  entrypoints: ["src/**/[[]*[]].*"],
   target: "node",
   packages: "external",
   ...(await CONFIG.BUN_SERVER_OPTIONS?.()),
