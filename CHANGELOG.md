@@ -1,5 +1,72 @@
 # Changelog
 
+## Unreleased
+
+### ✨ Features
+
+- **First-class Bun support.** With this release, Bun becomes a
+  first-class runtime for Jeasx. When Jeasx runs on Bun, it bundles with
+  Bun's native bundler (`Bun.build`) instead of esbuild, so running and
+  building share one toolchain. In development, `src` is watched and
+  rebuilt on every change.
+
+  As the `jeasx` command starts with Node by default, use the `-b` flag to
+  run it on Bun (`bunx -b jeasx dev`), or add a `bunfig.toml` to your
+  project to always use Bun:
+
+  ```toml
+  [run]
+  bun = true
+  ```
+
+  Both bundlers produce the same layout in `dist`, so build and runtime can
+  be mixed: bundle with Bun and run on Node, or bundle with esbuild and run
+  on Bun. This also keeps Jeasx independent of a single bundler: if one
+  project stalls, you can switch to the other.
+
+  Bun's bundler is configured via the new `BUN_SERVER_OPTIONS` and
+  `BUN_BROWSER_OPTIONS` functions in `jeasx.config.js`, just like esbuild
+  via `ESBUILD_SERVER_OPTIONS` and `ESBUILD_BROWSER_OPTIONS`:
+
+  ```js
+  // jeasx.config.js
+  export default {
+    /** @type {() => import("bun").BuildConfig} */
+    BUN_SERVER_OPTIONS: () => ({}),
+
+    /** @type {() => import("bun").BuildConfig} */
+    BUN_BROWSER_OPTIONS: () => ({}),
+  };
+  ```
+
+  Like all options in `jeasx.config.js`, these functions may be `async`
+  (returning a `Promise<import("bun").BuildConfig>`), e.g. to import
+  build-only plugins lazily.
+
+  Bun's options are similar to esbuild's, but not identical (e.g.
+  `entrypoints` instead of `entryPoints`, `target` instead of `platform`,
+  `naming` instead of `assetNames`), so existing esbuild options can usually
+  be ported with small changes. See the
+  [Bun bundler docs](https://bun.com/docs/bundler) for all options.
+
+- **JSX dev runtime in development.** esbuild now compiles with `jsxDev`
+  when `NODE_ENV=development`, so JSX elements carry source information for
+  easier debugging.
+
+### 🔄 Changes
+
+- **Build split into bundle and manifest steps.** `build.js` was replaced by
+  `bundle-esbuild.js`/`bundle-bun.js` (bundling) and `build-manifest.js`
+  (route and file mapping for production). `jeasx dev` skips the manifest.
+- **Manifest renamed.** The production route/file mapping moved from
+  `dist/[--metadata--].js` to `dist/.jeasx.manifest.js`. It is no longer a
+  route-like file name and is excluded from the static file mapping. Rebuild
+  existing `dist` folders with `jeasx build` before running `jeasx start`.
+
+### 📦 Dependency updates
+
+- `@types/node@26.6.7`
+
 ## 2026-11-20 - Jeasx 3.0.2 released
 
 ### 🐛 Fixes

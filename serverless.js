@@ -8,14 +8,15 @@ import { pathToFileURL } from "node:url";
 import env from "./env.js";
 env();
 const CWD = process.cwd();
+const MANIFEST_FILE = ".jeasx.manifest.js";
 const CONFIG = (await import(pathToFileURL(join(CWD, "jeasx.config.js")).href)).default;
 const NODE_ENV_IS_DEVELOPMENT = process.env.NODE_ENV === "development";
-const METADATA = NODE_ENV_IS_DEVELOPMENT ? { routes: {}, files: {} } : (await import(pathToFileURL(join(CWD, "dist", "[--metadata--].js")).href)).default;
+const MANIFEST = NODE_ENV_IS_DEVELOPMENT ? { routes: {}, files: {} } : (await import(pathToFileURL(join(CWD, "dist", MANIFEST_FILE)).href)).default;
 const MODULE_BY_ROUTE = Object.assign(
   /* @__PURE__ */ Object.create(null),
-  METADATA.routes
+  MANIFEST.routes
 );
-const FILE_BY_PATH = Object.assign(/* @__PURE__ */ Object.create(null), METADATA.files);
+const FILE_BY_PATH = Object.assign(/* @__PURE__ */ Object.create(null), MANIFEST.files);
 const FASTIFY_SEND_OPTIONS = {
   ...await CONFIG.FASTIFY_SEND_OPTIONS?.(),
   root: CWD
@@ -113,7 +114,7 @@ async function handler(request, reply) {
   }
   return await renderResponse(context, response);
 }
-const SPECIAL_SEGMENTS = /* @__PURE__ */ new Set(["index", "...guard", "...path", "--metadata--"]);
+const SPECIAL_SEGMENTS = /* @__PURE__ */ new Set(["index", "...guard", "...path"]);
 function* generateRoutes(path) {
   const segments = [""];
   let edgeSegment = "";
