@@ -4,7 +4,7 @@ import serverless from "./serverless.js";
 // or listen() are still booting are handled, too (module imports above run before this).
 // Shut down gracefully on Ctrl+C (SIGINT) and SIGTERM. In a container, Node runs as PID 1,
 // which ignores SIGINT unless a handler is registered. Exit explicitly afterwards, as other
-// handles (e.g. the esbuild watcher in development) would keep the process running.
+// open handles (e.g. timers or connections of plugins) could keep the process running.
 // "once": a second Ctrl+C kills the process if the shutdown hangs.
 for (const signal of ["SIGINT", "SIGTERM"]) {
   process.once(signal, async () => {
