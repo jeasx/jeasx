@@ -5,10 +5,9 @@
 ### ✨ Features
 
 - **First-class Bun support.** With this release, Bun becomes a
-  first-class runtime for Jeasx. When Jeasx runs on Bun, it bundles with
-  Bun's native bundler (`Bun.build`) instead of esbuild, so running and
-  building share one toolchain. In development, `src` is watched and
-  rebuilt on every change.
+  first-class bundler and runtime for Jeasx. When Jeasx runs on Bun, it bundles with
+  Bun's native bundler (`Bun.build`) instead of `esbuild`, so running and
+  building share one toolchain.
 
   As the `jeasx` command starts with Node by default, use the `-b` flag to
   run it on Bun (`bunx -b jeasx dev`), or add a `bunfig.toml` to your
@@ -49,7 +48,7 @@
   be ported with small changes. See the
   [Bun bundler docs](https://bun.com/docs/bundler) for all options.
 
-- **JSX dev runtime in development.** esbuild now compiles with `jsxDev`
+- **JSX dev runtime in development.** Builds are now compiled with `jsxDev`
   when `NODE_ENV=development`, so JSX elements carry source information for
   easier debugging.
 
@@ -57,7 +56,7 @@
 
 - **Build split into bundle and manifest steps.** `build.js` was replaced by
   `bundle-esbuild.js`/`bundle-bun.js` (bundling) and `build-manifest.js`
-  (route and file mapping for production). `jeasx dev` skips the manifest.
+  (route and file mapping for production).
 - **Manifest renamed.** The production route/file mapping moved from
   `dist/[--metadata--].js` to `dist/.jeasx.manifest.js`. It is no longer a
   route-like file name and is excluded from the static file mapping. Rebuild
