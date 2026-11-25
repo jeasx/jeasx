@@ -8,18 +8,18 @@
   Bun's native bundler (`Bun.build`) instead of `esbuild`, so running and
   building share one toolchain.
 
-  As the `jeasx` command starts with Node by default, use the `--bun` flag
-  to run it on Bun (`bunx --bun jeasx dev`), or add a `bunfig.toml` to your
-  project to always use Bun:
+  The `jeasx` command runs on Node by default. To run it on Bun, pass the
+  `--bun` flag (or its shortcut `-b`), e.g. `bun --bun jeasx dev`, or add a
+  `bunfig.toml` to your project to always use Bun:
 
   ```toml
   [run]
   bun = true
   ```
 
-  Both bundlers produce the same layout in `dist`, so you can bundle with
-  one and run on the other. This also keeps Jeasx independent of a single bundler:
-  if one project stalls, you can switch to the other.
+  Both bundlers produce the same `dist` layout, so you can build with one
+  runtime and run on the other. This also keeps Jeasx independent of a
+  single bundler: if one project stalls, you can switch to the other.
 
   Bun's bundler is configured via the new `BUN_SERVER_OPTIONS` and
   `BUN_BROWSER_OPTIONS` functions in `jeasx.config.js`, just like esbuild
@@ -56,7 +56,7 @@
   from `dist/[--metadata--].js` to `dist/.jeasx.manifest.js`. It is no
   longer a route-like file name and is excluded from the static file
   mapping. Rebuild existing `dist` folders with `jeasx build` before running
-  `jeasx start`. As the new file name starts with a dot, make sure your
+  `jeasx start`. Since the new file name starts with a dot, make sure your
   deployment doesn't skip dotfiles (e.g. copy/rsync globs, upload tools or
   `.dockerignore` patterns), otherwise the production server won't start.
 - **Build split into bundle and manifest steps.** `build.js` was replaced by
@@ -66,7 +66,7 @@
 
 ### 📦 Dependency updates
 
-- `@types/node@26.6.7`
+- `@types/node@26.6.10`
 
 ## 2026-11-20 - Jeasx 3.0.2 released
 
