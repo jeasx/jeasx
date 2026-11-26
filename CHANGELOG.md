@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 2026-11-26 - Jeasx 3.1.0 released
 
 ### ✨ Features
 
