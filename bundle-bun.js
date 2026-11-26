@@ -110,6 +110,8 @@ function commonAncestor(paths) {
   return ancestor.join(sep) || ".";
 }
 
+console.info(styleText("cyan", `Bundling with Bun v${Bun.version}`));
+
 await build();
 
 if (NODE_ENV_IS_DEVELOPMENT) {

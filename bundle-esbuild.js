@@ -1,6 +1,7 @@
 import * as esbuild from "esbuild";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
+import { styleText } from "node:util";
 import env from "./env.js";
 
 env();
@@ -37,6 +38,8 @@ const BROWSER_OPTIONS = {
   packages: "bundle",
   ...(await CONFIG.ESBUILD_BROWSER_OPTIONS?.()),
 };
+
+console.info(styleText("cyan", `Bundling with esbuild v${esbuild.version}`));
 
 for (const options of [SERVER_OPTIONS, BROWSER_OPTIONS]) {
   if (NODE_ENV_IS_DEVELOPMENT) {
