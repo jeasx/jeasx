@@ -21,7 +21,7 @@ const COMMON_OPTIONS = {
   format: "esm",
   throw: false,
   // Bun doesn't reliably pick up "jsxImportSource" from tsconfig.json.
-  jsx: { importSource: "jsx-async-runtime", development: NODE_ENV_IS_DEVELOPMENT },
+  jsx: { importSource: "jsx-async-runtime" },
   minify: !NODE_ENV_IS_DEVELOPMENT,
 };
 

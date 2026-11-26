@@ -5,21 +5,22 @@
 ### ✨ Features
 
 - **First-class Bun support.** When Jeasx runs on Bun, it bundles with
-  Bun's native bundler (`Bun.build`) instead of `esbuild`, so running and
-  building share one toolchain.
+  Bun's native bundler (`Bun.build`) instead of `esbuild`. This way, Bun can both
+  build and run your project without a separate bundler.
 
   The `jeasx` command runs on Node by default. To run it on Bun, pass the
-  `--bun` flag (or its shortcut `-b`), e.g. `bun --bun jeasx dev`, or add a
-  `bunfig.toml` to your project to always use Bun:
+  `--bun` flag (or its shortcut `-b`), e.g. `bun --bun jeasx dev`. To use Bun
+  without the flag (e.g. `bun jeasx dev`), add a `bunfig.toml` to your project:
 
   ```toml
   [run]
   bun = true
   ```
 
-  Both bundlers produce the same `dist` layout, so you can build with one
-  runtime and run on the other. This also keeps Jeasx independent of a
-  single bundler: if one project stalls, you can switch to the other.
+  Bun and esbuild produce the same `dist` layout, so you can mix and match:
+  build with Bun and run on Node, or build with esbuild and run on Bun.
+  This keeps Jeasx independent of a single bundler: if either Bun or esbuild
+  stalls as a project, you can switch to the other.
 
   Bun's bundler is configured via the new `BUN_SERVER_OPTIONS` and
   `BUN_BROWSER_OPTIONS` functions in `jeasx.config.js`, just like esbuild
@@ -48,13 +49,9 @@
   be ported with small changes. See the
   [Bun bundler docs](https://bun.com/docs/bundler) for all options.
 
-- **JSX dev runtime in development.** Builds are now compiled with `jsxDev`
-  when `NODE_ENV=development`, so JSX elements carry source information for
-  easier debugging. This is enabled automatically by `jeasx dev`.
-
 ### 🔄 Changes
 
-- ⚠️ **Breaking: manifest renamed.** The production route/file mapping moved
+- **Manifest file renamed.** The production route/file mapping moved
   from `dist/[--metadata--].js` to `dist/.jeasx.manifest.js`. It is no
   longer a route-like file name and is excluded from the static file
   mapping. Rebuild existing `dist` folders with `jeasx build` before running
