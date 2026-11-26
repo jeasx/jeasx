@@ -7,9 +7,16 @@
     "bun",
     "esbuild",
     "fastify",
+    "file-based-routing",
+    "framework",
+    "html",
     "jsx",
     "node",
-    "ssr"
+    "server-side-rendering",
+    "ssr",
+    "streaming",
+    "typescript",
+    "web-framework"
   ],
   "homepage": "https://www.jeasx.dev",
   "license": "MIT",
