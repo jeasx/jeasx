@@ -62,6 +62,8 @@
   `bundle-esbuild.js`/`bundle-bun.js` (bundling) and `build-manifest.js`
   (route and file mapping for production). This only matters if you call
   these scripts directly (e.g. in an ejected setup like `jeasx-develop`).
+- **Bundler logged on startup.** `jeasx dev` and `jeasx build` now print
+  which bundler (esbuild or Bun) and version they use.
 
 ### 📦 Dependency updates
 
