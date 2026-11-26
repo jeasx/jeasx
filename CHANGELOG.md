@@ -68,7 +68,7 @@
 
 ### 📦 Dependency updates
 
-- `@types/node@26.6.10`
+- `@types/node@26.6.11`
 
 ## 2026-11-20 - Jeasx 3.0.2 released
 
